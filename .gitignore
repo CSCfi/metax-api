@@ -5,5 +5,4 @@
 /src/.coverage
 .idea/
 ubuntu-xenial-16.04-cloudimg-console.log
-0001_initial.py
-__init__.py
+/src/metax_api/migrations/*

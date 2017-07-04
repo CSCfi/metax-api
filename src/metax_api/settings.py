@@ -58,6 +58,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -65,6 +66,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware',
 ]
 
 REST_FRAMEWORK = {
@@ -255,7 +257,7 @@ STATIC_URL = '/static/'
 CACHES = {
     'default': {
         'BACKEND': "redis_cache.RedisCache",
-        'LOCATION': "/run/redis/redis.sock",
+        'LOCATION': "/var/run/redis/redis.sock",
         'OPTIONS': {
             'DB': 1,
             'PARSER_CLASS': 'redis.connection.HiredisParser',

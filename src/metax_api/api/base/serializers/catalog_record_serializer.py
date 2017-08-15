@@ -16,7 +16,6 @@ class CatalogRecordSerializer(ModelSerializer):
         model = CatalogRecord
         fields = (
             'id',
-            'identifier',
             'contract',
             'dataset_catalog',
             'research_dataset',
@@ -100,9 +99,38 @@ class CatalogRecordSerializer(ModelSerializer):
         return res
 
     def validate_research_dataset(self, value):
+        # add urn_identifier temporarily to pass schema validation. proper value
+        # will be generated later in CatalogRecord model save().
+        value['urn_identifier'] = 'temp'
         validate_json(value, self.context['view'].json_schema)
+        value.pop('urn_identifier')
+
+        self._validate_uniqueness(value)
         CRS.validate_reference_data(value, self.context['view'].cache)
         return value
+
+    def _validate_uniqueness(self, value):
+        """
+        Unfortunately for unique fields inside a jsonfield, Django does not offer a neat
+        http400 error with an error message, so have to do it ourselves.
+        """
+        field_name = 'preferred_identifier'
+        found_obj = self._get_object(field_name, value[field_name])
+        if found_obj:
+            http_method = self.context['view'].request.stream.method
+            if http_method == 'POST' or self.instance.id != found_obj.id:
+                raise ValidationError(['catalog record with this research_dataset ->> %s already exists.' % field_name])
+
+    def _get_object(self, field_name, identifier):
+        # check cache
+        from_cache = self.context['view'].cache.get(identifier)
+        if from_cache:
+            return CatalogRecordSerializer(from_cache).instance
+        # check db
+        try:
+            return CatalogRecord.objects.get(**{ 'research_dataset__contains': { field_name: identifier }})
+        except CatalogRecord.DoesNotExist:
+            return None
 
     def _get_id_from_related_object(self, initial_data, relation_field):
         id = False

@@ -556,8 +556,9 @@ class FileApiWriteDeleteTests(FileApiWriteCommon):
         response = self.client.delete('/rest/files', file_ids, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+        import sys
         for f in File.objects_unfiltered.all():
-            print(f.id, f.removed)
+            sys.stdout.write('%d, %s\n' % (f.id, str(f.removed)))
 
         all_files_count_after = File.objects.all().count()
         self.assertEqual(all_files_count_before, all_files_count_after, 'no files should have been removed')
@@ -573,11 +574,13 @@ class FileApiWriteDeleteTests(FileApiWriteCommon):
         # a file will be found in one dir
         file_ids.pop(len(file_ids) - 1)
 
+        import sys
         from django.db import transaction, DatabaseError
         try:
             with transaction.atomic():
                 response = self.client.delete('/rest/files', file_ids, format="json")
                 if response.status_code != 200:
+                    sys.stdout.write('\nraising exception in xxxxxxxxxxx\n')
                     raise Exception('raising exception to rollback hopefully...')
         except DatabaseError as e:
             print('database error:')
@@ -587,7 +590,7 @@ class FileApiWriteDeleteTests(FileApiWriteCommon):
             print(e)
 
         for f in File.objects_unfiltered.all():
-            print(f.id, f.removed)
+            sys.stdout.write('%d, %s\n' % (f.id, str(f.removed)))
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 

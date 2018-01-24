@@ -232,7 +232,7 @@ class CommonService():
     @staticmethod
     def _check_and_raise_atomic_error(request, results):
         if len(results.get('failed', [])) > 0 and request.query_params.get('atomic', None) in ('', 'true'):
-            raise Http400({
+            raise ValidationError({
                 'success': [],
                 'failed': results['failed'],
                 'detail': ['request was failed due to parameter atomic=true']

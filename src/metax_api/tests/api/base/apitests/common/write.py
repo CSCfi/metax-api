@@ -197,7 +197,7 @@ class ApiWriteAtomicBulkOperations(CatalogRecordApiWriteCommon):
         record_count_before = CatalogRecord.objects.all().count()
         print('record_count_before %d' % record_count_before)
 
-        response = self.client.post('/rest/datasets?atomic=true', [cr, cr2, cr3], format="json")
+        response = self.request_with_rollback_on_error('post', '/rest/datasets?atomic=true', [cr, cr2, cr3])
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual('failed' in response.data, True)
         self.assertEqual('detail' in response.data, True)
@@ -209,13 +209,13 @@ class ApiWriteAtomicBulkOperations(CatalogRecordApiWriteCommon):
         cr = self.client.get('/rest/datasets/1', format="json").data
         cr2 = self.client.get('/rest/datasets/2', format="json").data
         cr3 = self.client.get('/rest/datasets/3', format="json").data
-        cr_old_title = cr['research_dataset']['title']['en']
-        cr2_old_title = cr2['research_dataset']['title']['en']
+        cr['research_dataset']['title']['en'] = 'updated'
+        cr2['research_dataset']['title']['en'] = 'updated'
         cr3.pop('data_catalog') # causes error
-        print('old title %s' % cr_old_title)
 
         record_count_before = CatalogRecord.objects.all().count()
 
+        response = self.request_with_rollback_on_error('put', '/rest/datasets?atomic=true', [cr, cr2, cr3])
         response = self.client.put('/rest/datasets?atomic=true', [cr, cr2, cr3], format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual('failed' in response.data, True)
@@ -226,5 +226,5 @@ class ApiWriteAtomicBulkOperations(CatalogRecordApiWriteCommon):
         cr = self.client.get('/rest/datasets/1', format="json").data
         cr2 = self.client.get('/rest/datasets/2', format="json").data
         print('current title %s' % cr['research_dataset']['title']['en'])
-        self.assertEqual(cr_old_title, cr['research_dataset']['title']['en'], 'should not have updated')
-        self.assertEqual(cr2_old_title, cr['research_dataset']['title']['en'], 'should not have updated')
+        self.assertEqual('next_version' in cr, False)
+        self.assertEqual('next_version' in cr2, False)

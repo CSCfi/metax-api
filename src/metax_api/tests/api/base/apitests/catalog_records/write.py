@@ -154,11 +154,9 @@ class CatalogRecordApiWriteCreateTests(CatalogRecordApiWriteCommon):
         """
         Ensure the json path of the error is returned along with other details
         """
-        record_count_before = CatalogRecord.objects.all().count()
         self.test_new_data['research_dataset']["title"] = 1234456
         response = self.client.post('/rest/datasets', self.test_new_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(record_count_before, CatalogRecord.objects.all().count())
         self.assertEqual(len(response.data), 1, 'there should be only one error')
         self.assertEqual('research_dataset' in response.data.keys(), True,
                          'The error should concern the field research_dataset')

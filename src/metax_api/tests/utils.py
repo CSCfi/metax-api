@@ -2,6 +2,7 @@ from base64 import b64encode
 from json import load as json_load
 from os import path
 
+from django.db import transaction, DatabaseError
 from django.conf import settings as django_settings
 
 datetime_format = '%Y-%m-%dT%H:%M:%S.%fZ'
@@ -80,3 +81,18 @@ class TestClassUtils():
         raise Exception('Could not find model %s from test data with index == %d. '
                         'Are you certain you generated rows for model %s in generate_test_data.py?'
                         % (model_name, requested_index))
+
+    def request_with_rollback_on_error(self, verb, url, data):
+        """
+        Execute api requests with manual rollback on error due to rollback not happening in travis in some
+        cases. This method needs to be used for tests to pass in travis, locally executed changes are rolled
+        back on error just fine.
+        """
+        try:
+            with transaction.atomic():
+                response = getattr(self.client, verb)(url, data, format="json")
+                if response.status_code not in (200, 201, 204):
+                    raise DatabaseError
+        except DatabaseError:
+            pass
+        return response

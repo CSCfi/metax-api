@@ -199,7 +199,8 @@ class ApiWriteAtomicBulkOperations(CatalogRecordApiWriteCommon):
 
         response = self.request_with_rollback_on_error('post', '/rest/datasets?atomic=true', [cr, cr2, cr3])
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual('failed' in response.data, True)
+        self.assertEqual(len(response.data['success']) == 0, True)
+        self.assertEqual(len(response.data['failed']) == 1, True)
         self.assertEqual('detail' in response.data, True)
         self.assertEqual('atomic' in response.data['detail'][0], True)
         print('after %d' % CatalogRecord.objects.all().count())
@@ -216,17 +217,16 @@ class ApiWriteAtomicBulkOperations(CatalogRecordApiWriteCommon):
         record_count_before = CatalogRecord.objects.all().count()
 
         response = self.request_with_rollback_on_error('put', '/rest/datasets?atomic=true', [cr, cr2, cr3])
-        response = self.client.put('/rest/datasets?atomic=true', [cr, cr2, cr3], format="json")
         cr = self.client.get('/rest/datasets/1', format="json").data
         cr2 = self.client.get('/rest/datasets/2', format="json").data
         print('current title %s' % cr['research_dataset']['title']['en'])
         print('next_version' in cr)
         print('next_version' in cr2)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual('failed' in response.data, True)
-        self.assertEqual('detail' in response.data, True)
+        self.assertEqual(len(response.data['success']) == 0, True)
+        self.assertEqual(len(response.data['failed']) == 1, True)
         self.assertEqual('atomic' in response.data['detail'][0], True)
-        self.assertEqual(record_count_before, CatalogRecord.objects.all().count(), 'shouldnt create version records')
+        self.assertEqual(record_count_before, CatalogRecord.objects.all().count(), 'shouldnt create new version')
 
         self.assertEqual('next_version' in cr, False)
         self.assertEqual('next_version' in cr2, False)

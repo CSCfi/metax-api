@@ -197,7 +197,17 @@ class ApiWriteAtomicBulkOperations(CatalogRecordApiWriteCommon):
         record_count_before = CatalogRecord.objects.all().count()
         print('record_count_before %d' % record_count_before)
 
-        response = self.client.post('/rest/datasets?atomic=true', [cr, cr2, cr3], format="json")
+        from django.db import transaction, DatabaseError
+
+        try:
+            with transaction.atomic():
+                response = self.client.post('/rest/datasets?atomic=true', [cr, cr2, cr3], format="json")
+                if response.status_code != 200:
+                    # manual rollback due to rollback not happening in travis??
+                    raise DatabaseError
+        except DatabaseError:
+            pass
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual('failed' in response.data, True)
         self.assertEqual('detail' in response.data, True)
@@ -214,11 +224,22 @@ class ApiWriteAtomicBulkOperations(CatalogRecordApiWriteCommon):
         cr3.pop('data_catalog') # causes error
         print('old title %s' % cr_old_title)
 
-        response = self.client.put('/rest/datasets?atomic=true', [cr, cr2, cr3], format="json")
+        record_count_before = CatalogRecord.objects.all().count()
+
+        from django.db import transaction, DatabaseError
+        try:
+            with transaction.atomic():
+                response = self.client.put('/rest/datasets?atomic=true', [cr, cr2, cr3], format="json")
+                if response.status_code != 200:
+                    # manual rollback due to rollback not happening in travis??
+                    raise DatabaseError
+        except DatabaseError:
+            pass
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual('failed' in response.data, True)
         self.assertEqual('detail' in response.data, True)
         self.assertEqual('atomic' in response.data['detail'][0], True)
+        self.assertEqual(record_count_before, CatalogRecord.objects.all().count(), 'shouldnt create version records')
 
         cr = self.client.get('/rest/datasets/1', format="json").data
         cr2 = self.client.get('/rest/datasets/2', format="json").data

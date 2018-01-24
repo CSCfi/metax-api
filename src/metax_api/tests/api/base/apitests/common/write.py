@@ -192,28 +192,36 @@ class ApiWriteAtomicBulkOperations(CatalogRecordApiWriteCommon):
         cr['research_dataset'].pop('preferred_identifier')
         cr2 = deepcopy(cr)
         cr3 = deepcopy(cr)
-        cr3.pop('data_catalog')
+        cr3.pop('data_catalog') # causes error
 
         record_count_before = CatalogRecord.objects.all().count()
+        print('record_count_before %d' % record_count_before)
 
         response = self.client.post('/rest/datasets?atomic=true', [cr, cr2, cr3], format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual('failed' in response.data, True)
         self.assertEqual('detail' in response.data, True)
         self.assertEqual('atomic' in response.data['detail'][0], True)
+        print('after %d' % CatalogRecord.objects.all().count())
         self.assertEqual(record_count_before, CatalogRecord.objects.all().count())
 
     def test_atomic_update(self):
         cr = self.client.get('/rest/datasets/1', format="json").data
         cr2 = self.client.get('/rest/datasets/2', format="json").data
         cr3 = self.client.get('/rest/datasets/3', format="json").data
-        cr3.pop('data_catalog')
-
-        record_count_before = CatalogRecord.objects.all().count()
+        cr_old_title = cr['research_dataset']['title']['en']
+        cr2_old_title = cr2['research_dataset']['title']['en']
+        cr3.pop('data_catalog') # causes error
+        print('old title %s' % cr_old_title)
 
         response = self.client.put('/rest/datasets?atomic=true', [cr, cr2, cr3], format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual('failed' in response.data, True)
         self.assertEqual('detail' in response.data, True)
         self.assertEqual('atomic' in response.data['detail'][0], True)
-        self.assertEqual(record_count_before, CatalogRecord.objects.all().count())
+
+        cr = self.client.get('/rest/datasets/1', format="json").data
+        cr2 = self.client.get('/rest/datasets/2', format="json").data
+        print('current title %s' % cr['research_dataset']['title']['en'])
+        self.assertEqual(cr_old_title, cr['research_dataset']['title']['en'], 'should not have updated')
+        self.assertEqual(cr2_old_title, cr['research_dataset']['title']['en'], 'should not have updated')

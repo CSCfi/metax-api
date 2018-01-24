@@ -1,7 +1,7 @@
 import logging
 from collections import OrderedDict
 
-from django.db import transaction
+# from django.db import transaction
 from rest_framework.fields import SkipField
 from rest_framework.relations import PKOnlyObject
 from rest_framework.serializers import ModelSerializer
@@ -37,7 +37,7 @@ class CommonSerializer(ModelSerializer):
             'service_created':     { 'required': False },
         }
 
-    @transaction.atomic
+    # @transaction.atomic
     def save(self, *args, **kwargs):
         """
         Inherited to use @transaction.atomic, which creates a "save point" in the larger scope

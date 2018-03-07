@@ -134,7 +134,6 @@ def generate_files(mode, test_file_storage_list, validate_json, url):
 
     json_template = row_template['file_characteristics'].copy()
     file_name = row_template['file_name']
-    download_url = row_template['download_url']
     json_title = json_template['title']
     json_description = json_template['description']
 
@@ -221,7 +220,6 @@ def generate_files(mode, test_file_storage_list, validate_json, url):
             new['fields']['file_name'] = file_name % loop
             new['fields']['file_path'] = file_path % loop
             new['fields']['identifier'] = "pid:urn:" + loop
-            new['fields']['download_url'] = download_url % loop
             new['fields']['file_characteristics']['title'] = json_title % loop
             new['fields']['file_characteristics']['description'] = json_description % loop
             new['fields']['file_storage'] = file_storage
@@ -241,7 +239,6 @@ def generate_files(mode, test_file_storage_list, validate_json, url):
 
             new['file_name'] = file_name % loop
             new['identifier'] = "pid:urn:" + uuid_str
-            new['download_url'] = download_url % loop
             new['file_characteristics']['title'] = json_title % loop
             new['file_characteristics']['description'] = json_description % loop
             new['file_storage'] = file_storage
@@ -490,7 +487,7 @@ def generate_catalog_records(mode, basic_catalog_record_max_rows, data_catalogs_
             new['fields']['research_dataset'] = row_template['research_dataset'].copy()
 
             new['fields']['data_catalog'] = data_catalog_id
-            new['fields']['research_dataset']['urn_identifier'] = generate_test_identifier(cr_type, i)
+            new['fields']['research_dataset']['metadata_version_identifier'] = generate_test_identifier(cr_type, i)
             new['fields']['research_dataset']['preferred_identifier'] = "pid:urn:preferred:dataset%d" % i
             new['fields']['date_modified'] = '2017-06-23T10:07:22Z'
             new['fields']['date_created'] = '2017-05-23T10:07:22Z'
@@ -600,7 +597,6 @@ def generate_catalog_records(mode, basic_catalog_record_max_rows, data_catalogs_
 
         #     new['file_name'] = file_name % loop
         #     new['identifier'] = uuid_str
-        #     new['download_url'] = download_url % loop
         #     new['file_characteristics']['title'] = json_title % loop
         #     new['file_characteristics']['description'] = json_description % loop
         #     new['file_storage'] = file_storage
@@ -708,7 +704,8 @@ def generate_catalog_records(mode, basic_catalog_record_max_rows, data_catalogs_
             'owner_id': catalog_records_owner_ids[j],
             'creator_id': catalog_records_owner_ids[owner_idx],
         }
-        new['fields']['research_dataset']['urn_identifier'] = generate_test_identifier(cr_type, len(test_data_list) + 1)
+        new['fields']['research_dataset']['metadata_version_identifier'] = \
+            generate_test_identifier(cr_type, len(test_data_list) + 1)
         new['fields']['research_dataset']['preferred_identifier'] = 'very:unique:urn-%d' % j
 
         if type == 'ida':
@@ -726,7 +723,7 @@ def generate_catalog_records(mode, basic_catalog_record_max_rows, data_catalogs_
                 files = []
 
                 db_files = [6, 10, 22, 23, 24, 25, 26]
-                db_files.extend(list(range(35, 121)))
+                db_files.extend(list(range(35, 116)))
 
                 files = [
                     {
@@ -783,6 +780,14 @@ def generate_catalog_records(mode, basic_catalog_record_max_rows, data_catalogs_
                     {
                         "identifier": "pid:urn:dir:18",
                         "title": "Phase 1 of science data C",
+                        "description": "Description of the directory",
+                        "use_category": {
+                            "identifier": "http://purl.org/att/es/reference_data/use_category/use_category_outcome"
+                        }
+                    },
+                    {
+                        "identifier": "pid:urn:dir:22",
+                        "title": "Phase 2 of science data C",
                         "description": "Description of the directory",
                         "use_category": {
                             "identifier": "http://purl.org/att/es/reference_data/use_category/use_category_outcome"
@@ -860,7 +865,7 @@ def generate_alt_catalog_records(test_data_list):
     alt_rec['pk'] = test_data_list[-1]['pk'] + 1
     alt_rec['fields']['research_dataset']['preferred_identifier'] = test_data_list[9]['fields']['research_dataset'][
         'preferred_identifier']
-    alt_rec['fields']['research_dataset']['urn_identifier'] += '-alt-1'
+    alt_rec['fields']['research_dataset']['metadata_version_identifier'] += '-alt-1'
     alt_rec['fields']['data_catalog'] = 2
     alt_rec['fields']['alternate_record_set'] = 1
     test_data_list.append(alt_rec)
@@ -870,7 +875,7 @@ def generate_alt_catalog_records(test_data_list):
     alt_rec['pk'] = test_data_list[-1]['pk'] + 1
     alt_rec['fields']['research_dataset']['preferred_identifier'] = test_data_list[9]['fields']['research_dataset'][
         'preferred_identifier']
-    alt_rec['fields']['research_dataset']['urn_identifier'] += '-alt-2'
+    alt_rec['fields']['research_dataset']['metadata_version_identifier'] += '-alt-2'
     alt_rec['fields']['data_catalog'] = 3
     alt_rec['fields']['alternate_record_set'] = 1
     test_data_list.append(alt_rec)

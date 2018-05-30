@@ -795,7 +795,6 @@
                 }
             },
             "required":[
-                "identifier",
                 "source_organization",
                 "name"
             ]
@@ -844,8 +843,6 @@
                 }
             },
             "required":[
-                "description",
-                "title"
             ]
         },
         "ResearchAgent":{

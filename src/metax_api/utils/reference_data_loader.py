@@ -73,7 +73,14 @@ class ReferenceDataLoader():
             settings = settings.ELASTICSEARCH
 
         connection_params = cls._get_connection_parameters(settings)
-        esclient = Elasticsearch(settings['HOSTS'], **connection_params)
+
+        # The sniffing may be of more use when there are more than 3 nodes in the cluster, but no harm done in having
+        # them in the parameters. In 3 node cluster this way of connecting to es requires at least two live nodes.
+        # Probably is related to the minimum amount of master nodes that in a 3 node cluster is set to value of 2.
+        esclient = Elasticsearch(
+            settings['HOSTS'],
+            **connection_params)
+
         indicesclient = IndicesClient(esclient)
         reference_data = {}
         for index_name, index_info in indicesclient.get_mapping().items():

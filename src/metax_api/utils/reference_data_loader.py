@@ -79,14 +79,6 @@ class ReferenceDataLoader():
         # Probably is related to the minimum amount of master nodes that in a 3 node cluster is set to value of 2.
         esclient = Elasticsearch(
             settings['HOSTS'],
-            # sniff before doing anything
-            sniff_on_start=True,
-            # refresh nodes after a node fails to respond
-            sniff_on_connection_fail=True,
-            # and also every 5 seconds
-            sniffer_timeout=5,
-            # set sniffing request timeout to 2 seconds
-            sniff_timeout=2,
             **connection_params)
 
         indicesclient = IndicesClient(esclient)

@@ -72,8 +72,23 @@ class ReferenceDataLoader():
         if not isinstance(settings, dict):
             settings = settings.ELASTICSEARCH
 
+        _logger.info(settings)
         connection_params = cls._get_connection_parameters(settings)
-        esclient = Elasticsearch(settings['HOSTS'], **connection_params)
+        _logger.info(settings)
+        _logger.info(connection_params)
+
+        esclient = Elasticsearch(
+            settings['HOSTS'],
+            # sniff before doing anything
+            sniff_on_start=True,
+            # refresh nodes after a node fails to respond
+            sniff_on_connection_fail=True,
+            # and also every 5 seconds
+            sniffer_timeout=5,
+            # set sniffing request timeout to 2 seconds
+            sniff_timeout=2,
+            **connection_params)
+
         indicesclient = IndicesClient(esclient)
         reference_data = {}
         for index_name, index_info in indicesclient.get_mapping().items():

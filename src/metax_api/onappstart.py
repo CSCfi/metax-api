@@ -14,7 +14,7 @@ from time import sleep
 from django.apps import AppConfig
 from django.conf import settings
 
-from metax_api.utils import executing_test_case, json_logger, ReferenceDataLoader
+from metax_api.utils import compare_datetime, executing_test_case, json_logger, ReferenceDataLoader
 
 _logger = logging.getLogger(__name__)
 
@@ -62,8 +62,11 @@ class OnAppStart(AppConfig):
 
             if settings.ELASTICSEARCH['ALWAYS_RELOAD_REFERENCE_DATA_ON_RESTART']:
                 cache.set('reference_data', None)
+            else:
+                last_fetched = cache.get('ref_data_last_fetched', master=True)
+                reload_interval = settings.ELASTICSEARCH['REFERENCE_DATA_RELOAD_INTERVAL']
 
-            if not cache.get('reference_data', master=True):
+            if not cache.get('reference_data', master=True) or compare_datetime(last_fetched, delta=reload_interval):
                 ReferenceDataLoader.populate_cache_reference_data(cache)
                 json_logger.info(
                     event='reference_data_loaded',

@@ -500,6 +500,9 @@ else:
         'ALWAYS_RELOAD_REFERENCE_DATA_ON_RESTART': app_config_dict['ALWAYS_RELOAD_REFERENCE_DATA_ON_RESTART'],
     }
 
+# given in hours. Used only if ALWAYS_RELOAD_REFERENCE_DATA_ON_RESTART=false
+ELASTICSEARCH['REFERENCE_DATA_RELOAD_INTERVAL'] = 24
+
 if not executing_in_travis:
     RABBITMQ = {
         'HOSTS':    app_config_dict['RABBITMQ']['HOSTS'],

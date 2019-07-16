@@ -7,7 +7,7 @@
 
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 from uuid import uuid4
 
@@ -86,6 +86,25 @@ def parse_timestamp_string_to_tz_aware_datetime(timestamp_str):
 
 def get_tz_aware_now_without_micros():
     return timezone.now().replace(microsecond=0)
+
+
+def compare_datetime(start, end=None, delta=0):
+    """
+    Compares two datetime objects with optional timedelta addition to start.
+    Delta parameter is handled as hours. If ending datetime is not given, current time is used.
+
+    Returns True if ending is later than start, otherwise False. Returns True also when start is None.
+    """
+    if start is None:
+        return True
+
+    if end is None:
+        end = get_tz_aware_now_without_micros()
+
+    if not isinstance(start, datetime) or not isinstance(end, datetime):
+        raise ValueError("Compared values must be datetime objects")
+
+    return end > start + timedelta(hours=delta)
 
 
 def generate_uuid_identifier(urn_prefix=False):

@@ -12,7 +12,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
 from elasticsearch.helpers import scan
 
-from .utils import executing_test_case
+from .utils import executing_test_case, get_tz_aware_now_without_micros
 
 _logger = logging.getLogger(__name__)
 d = logging.getLogger(__name__).debug
@@ -63,6 +63,9 @@ class ReferenceDataLoader():
             _logger.warning('Key organization_data missing from reference data - '
                             'something went wrong during cache population?')
             errors = True
+
+        if not errors:
+            cache.set('ref_data_last_fetched', get_tz_aware_now_without_micros())
 
         _logger.info('ReferenceDataLoader - %s' % ('failed to populate cache' if errors else 'cache populated'))
         cache.delete('reference_data_load_executing')

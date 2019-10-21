@@ -127,6 +127,8 @@ class FileViewSet(CommonViewSet):
         if self.request.user.is_service:
             FileService.check_allowed_projects(request)
 
+        FileService.check_file_storages(request, request.data, 'update')
+
         return super().update_bulk(request, *args, **kwargs)
 
     def partial_update_bulk(self, request, *args, **kwargs):
@@ -136,6 +138,8 @@ class FileViewSet(CommonViewSet):
         """
         if self.request.user.is_service:
             FileService.check_allowed_projects(request)
+
+        FileService.check_file_storages(request, request.data, 'update')
 
         return super().partial_update_bulk(request, *args, **kwargs)
 

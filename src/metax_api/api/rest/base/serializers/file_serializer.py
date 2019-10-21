@@ -83,7 +83,8 @@ class FileSerializer(CommonSerializer):
 
     def is_valid(self, raise_exception=False):
         if self._request_by_end_user():
-            self._end_user_update_validations(self.initial_data)
+            if self._operation_is_update:
+                self._end_user_update_validations(self.initial_data)
 
         if 'file_storage' in self.initial_data:
             self.initial_data['file_storage'] = self._get_id_from_related_object(

@@ -8,15 +8,18 @@
 from copy import deepcopy
 from os.path import dirname
 
+from django.db import transaction
 from django.db.models import Sum
 from django.core.management import call_command
+from django.conf import settings as django_settings
 from rest_framework import status
 from rest_framework.test import APITestCase
 import responses
 
-from metax_api.models import CatalogRecord, Directory, File
+from metax_api.models import CatalogRecord, Directory, File, FileStorage
 from metax_api.services import RedisCacheService as cache
 from metax_api.tests.utils import get_test_oidc_token, test_data_file_path, TestClassUtils
+from metax_api.utils import get_tz_aware_now_without_micros
 
 
 class FileApiWriteCommon(APITestCase, TestClassUtils):
@@ -521,21 +524,21 @@ class FileApiWriteCreateDirectoriesTests(FileApiWriteCommon):
         experiment_1_file_list = self._form_complex_list_from_test_file()
         experiment_1_file_list[0].pop('file_path')
         response = self.client.post('/rest/files', experiment_1_file_list, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, response.data)
         self.assertEqual('file_path' in response.data, True)
         self.assertEqual('required parameter' in response.data['file_path'][0], True)
 
         experiment_1_file_list = self._form_complex_list_from_test_file()
         experiment_1_file_list[0].pop('project_identifier')
         response = self.client.post('/rest/files', experiment_1_file_list, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, response.data)
         self.assertEqual('project_identifier' in response.data, True)
         self.assertEqual('required parameter' in response.data['project_identifier'][0], True)
 
         experiment_1_file_list = self._form_complex_list_from_test_file()
         experiment_1_file_list[0]['project_identifier'] = 'second_project'
         response = self.client.post('/rest/files', experiment_1_file_list, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, response.data)
         self.assertEqual('project_identifier' in response.data, True)
         self.assertEqual('multiple projects' in response.data['project_identifier'][0], True)
 
@@ -731,26 +734,20 @@ class FileApiWriteUpdateTests(FileApiWriteCommon):
         self.assertEqual(updated_file.file_format, new_file_format)
 
     def test_file_update_list_error_key_not_found(self):
+        """
+        In update operations, if there are no keys present to identify some file, the entire request
+        should fail instead of letting some of updates succeed.
+        """
         f1 = self.client.get('/rest/files/1').data
         f2 = self.client.get('/rest/files/2').data
-        new_file_format = 'changed-format'
-        new_file_format_2 = 'changed-format-2'
-        f1['file_format'] = new_file_format
-        f2['file_format'] = new_file_format_2
+
         # has no lookup key - should fail
         f2.pop('id')
         f2.pop('identifier')
 
         response = self.client.put('/rest/files', [f1, f2], format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
-        self.assertEqual(len(response.data['success']), 1, 'success list should be empty')
-        self.assertEqual(len(response.data['failed']), 1, 'there should have been one failed element')
-        error_msg_of_failed_row = response.data['failed'][0]['errors']['detail'][0]
-        self.assertEqual('identifying keys' in error_msg_of_failed_row, True,
-                         'error should be about identifying keys missing')
-
-        updated_file = File.objects.get(pk=1)
-        self.assertEqual(updated_file.file_format, new_file_format)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, response.data)
+        self.assertEqual('file storage permissions' in response.data['detail'], True, response.data)
 
     def test_file_update_list_allowed_projects_ok(self):
         # Both files in project 'project_x'
@@ -1224,18 +1221,55 @@ class FileApiWriteEndUserAccess(FileApiWriteCommon):
         self.token = get_test_oidc_token()
         self._mock_token_validation_succeeds()
 
+        fs = FileStorage.objects.get(pk=1)
+        file_storage_json = fs.file_storage_json
+        file_storage_json['identifier'] = django_settings.END_USER_ALLOWED_FILE_STORAGES[0]
+        fs = FileStorage.objects.create(
+            file_storage_json=file_storage_json,
+            file_group_create='some_permitted_create_group',
+            file_group_edit='some_permitted_edit_group',
+            date_created=get_tz_aware_now_without_micros()
+        )
+
     @responses.activate
-    def test_user_cant_create_files(self):
+    def test_user_can_create_files_in_permitted_file_storages(self):
         '''
-        Ensure users are unable to create new files.
+        Ensure users are only able to create new files into permitted file storages.
         '''
+        fs_identifier = django_settings.END_USER_ALLOWED_FILE_STORAGES[0]
+        fs = FileStorage.objects.get(file_storage_json__identifier=fs_identifier)
 
         # ensure user belongs to same project
         self.token['group_names'].append('fairdata:IDA01:%s' % self.test_new_data['project_identifier'])
+        self.token['group_names'].append(fs.file_group_create)
         self._use_http_authorization(method='bearer', token=self.token)
 
+        # creating files into a storage that does not permit end users to create files.
+        # all requests should fail
+        with transaction.atomic():
+            # create single
+            response = self.client.post('/rest/files', self.test_new_data, format="json")
+            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.data)
+
+        with transaction.atomic():
+            # create bulk
+            response = self.client.post('/rest/files', [self.test_new_data], format="json")
+            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.data)
+
+        # creating files into a storage that permis end users to create files.
+        # all requests should succeed
+
+        # create single
+        self.test_new_data['file_storage'] = django_settings.END_USER_ALLOWED_FILE_STORAGES[0]
         response = self.client.post('/rest/files', self.test_new_data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+
+        # create bulk
+        self.test_new_data['identifier'] += '2'
+        self.test_new_data['file_name'] += '2'
+        self.test_new_data['file_path'] += '2'
+        response = self.client.post('/rest/files', [self.test_new_data], format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
 
     @responses.activate
     def test_user_can_only_update_permitted_file_fields(self):
@@ -1309,7 +1343,7 @@ class FileApiWriteEndUserAccess(FileApiWriteCommon):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response = self.client.put('/rest/files', [file], format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
 
     @responses.activate
     def test_user_cant_update_files_in_others_projects(self):

@@ -20,7 +20,7 @@ from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 
 from metax_api.exceptions import Http400, Http403
-from metax_api.models import CatalogRecord, Directory, File
+from metax_api.models import CatalogRecord, Directory, File, FileStorage
 from metax_api.services import AuthService
 from metax_api.utils.utils import get_tz_aware_now_without_micros, DelayedLog
 from .callable_service import CallableService
@@ -863,38 +863,6 @@ class FileService(CommonService, ReferenceDataMixin):
         return root_dir_json
 
     @classmethod
-    def _create_single(cls, common_info, initial_data, serializer_class, **kwargs):
-        """
-        Override the original _create_single from CommonService to also create directories,
-        and setting them as parent_directory to approriate dirs and the file, before creating.
-        """
-        _logger.info('Begin create single file')
-
-        cls._check_errors_before_creating_dirs([initial_data])
-
-        # the same initial data as received, except it has parent_directory set also
-        initial_data_with_dirs = cls._create_directories_from_file_list(common_info, [initial_data], **kwargs)
-
-        res = super(FileService, cls)._create_single(
-            common_info, initial_data_with_dirs[0], serializer_class, **kwargs)
-
-        cls.calculate_project_directory_byte_sizes_and_file_counts(initial_data['project_identifier'])
-
-        CallableService.add_post_request_callable(DelayedLog(
-            event='files_created',
-            user_id=initial_data.get('user_created', res[0]['service_created']),
-            files={
-                'project_identifier': initial_data['project_identifier'],
-                'file_storage': str(initial_data['file_storage']),
-                'file_count': 1,
-            },
-        ))
-
-        _logger.info('Created 1 new files')
-
-        return res
-
-    @classmethod
     def check_allowed_projects(cls, request):
         allowed_projects = CommonService.get_list_query_param(request, 'allowed_projects')
 
@@ -916,6 +884,124 @@ class FileService(CommonService, ReferenceDataMixin):
                 raise Http403({ 'detail': [ 'You do not have permission to update this file' ] })
 
     @classmethod
+    def check_file_storages(cls, request, initial_data_list, op_type):
+        """
+        Ensure the request targets only a single file storage, and that the user has access
+        to either create or edit files in that file storage.
+        """
+        assert op_type in ('create', 'update'), 'op_type must be create or update. type was: %s' % op_type
+        assert isinstance(initial_data_list, list), 'initial_data_list must be of type list'
+
+        if op_type == 'update':
+            try:
+                if 'id' in initial_data_list[0]:
+                    params = { 'id__in': [ f['id'] for f in initial_data_list ] }
+                else:
+                    params = { 'identifier__in': [ f['identifier'] for f in initial_data_list ] }
+            except KeyError:
+                raise Http400(
+                    'Unable to check file storage permissions. This operation requires one of '
+                    'the following identifying keys to be present: id, identifier.'
+                )
+
+            files = File.objects \
+                .filter(**params) \
+                .values_list('file_storage_id', flat=True)
+
+            if len(files) != len(initial_data_list):
+                raise Http400('Some provided files were not found')
+
+            file_storage_ids = set(id for id in files)
+            if len(file_storage_ids) > 1:
+                raise Http400({ 'file_storage': ['All files in the operation must target the same file storage'] })
+
+            fs = FileStorage.objects.get(pk=next(iter(file_storage_ids)))
+        else:
+            # create op
+            file_storage = initial_data_list[0]['file_storage']
+            for f in initial_data_list:
+                if f['file_storage'] != file_storage:
+                    raise Http400({ 'file_storage': ['All files in the operation must target the same file storage'] })
+
+            params = None
+
+            # deal with convenience-ways of providing the identifier, as well as the more formal dict
+            if isinstance(file_storage, str):
+                params = { 'file_storage_json__identifier': file_storage }
+            elif isinstance(file_storage, int):
+                params = { 'pk': file_storage }
+            elif isinstance(file_storage, dict):
+                if 'id' in file_storage:
+                    params = { 'pk': file_storage['id'] }
+                elif 'identifer' in file_storage:
+                    params = { 'file_storage_json__identifier': file_storage['identifier'] }
+
+            if not params:
+                raise Http400({ 'file_storage': ['Value is not usable as a file storage identifier'] })
+
+            try:
+                fs = FileStorage.objects.get(**params)
+            except FileStorage.DoesNotExist:
+                raise Http400({ 'file_storage': [ 'File storage %s does not exist' % next(iter(params.values())) ]})
+
+        if request.user.is_service:
+            return True
+
+        # enduser api request ->
+
+        # for endusers:
+        # - pas allows enduser api create
+        # - pas allows enduser api update
+        # - ida allows enduser api update
+
+        if fs.file_storage_json['identifier'] == settings.PAS_FILE_STORAGE_IDENTIFIER:
+
+            # check from file storage if end user's groups permit writing into this storage
+
+            if op_type == 'create':
+                if not fs.file_group_create:
+                    return True
+                allowed_groups = fs.file_group_create.split(',')
+            else:
+                if not fs.file_group_edit:
+                    return True
+                allowed_groups = fs.file_group_edit.split(',')
+
+            if AuthService.check_user_groups_against_groups(request, allowed_groups):
+                return True
+        else:
+            # ida file storage. updating is allowed using enduser api, but not creating
+            if op_type == 'update':
+                return True
+
+        raise Http403({ 'detail': [ 'You are not permitted to %s files in this file storage.' % op_type ]})
+
+    @classmethod
+    def _create_single(cls, common_info, initial_data, serializer_class, **kwargs):
+        """
+        Override the original _create_single from CommonService to also create directories,
+        and setting them as parent_directory to approriate dirs and the file, before creating.
+        """
+        _logger.info('Begin create single file')
+
+        cls._check_errors_before_creating_dirs([initial_data])
+        cls.check_file_storages(kwargs['context']['request'], [initial_data], 'create')
+
+        # the same initial data as received, except it has parent_directory set also
+        initial_data_with_dirs = cls._create_directories_from_file_list(common_info, [initial_data], **kwargs)
+
+        res = super(FileService, cls)._create_single(
+            common_info, initial_data_with_dirs[0], serializer_class, **kwargs)
+
+        cls.calculate_project_directory_byte_sizes_and_file_counts(initial_data['project_identifier'])
+
+        cls._add_delayed_create_log(common_info, [initial_data], None)
+
+        _logger.info('Created 1 new files')
+
+        return res
+
+    @classmethod
     def _create_bulk(cls, common_info, initial_data_list, results, serializer_class, **kwargs):
         """
         Override the original _create_bulk from CommonService to also create directories,
@@ -924,6 +1010,8 @@ class FileService(CommonService, ReferenceDataMixin):
         _logger.info('Begin bulk create files')
 
         cls._check_errors_before_creating_dirs(initial_data_list)
+        cls.check_file_storages(kwargs['context']['request'], initial_data_list, 'create')
+
         file_list_with_dirs = cls._create_directories_from_file_list(common_info, initial_data_list, **kwargs)
 
         _logger.info('Creating files...')
@@ -933,17 +1021,25 @@ class FileService(CommonService, ReferenceDataMixin):
 
         cls.calculate_project_directory_byte_sizes_and_file_counts(initial_data_list[0]['project_identifier'])
 
+        cls._add_delayed_create_log(common_info, initial_data_list, results)
+
+        _logger.info('Created %d new files' % len(results.get('success', [])))
+
+    @staticmethod
+    def _add_delayed_create_log(common_info, initial_data_list, results):
+        user_id = initial_data_list[0].get('user_created')
+        if not user_id:
+            user_id = common_info.get('user_created') or common_info['service_created']
+
         CallableService.add_post_request_callable(DelayedLog(
             event='files_created',
-            user_id=initial_data_list[0].get('user_created', common_info['service_created']),
+            user_id=user_id,
             files={
                 'project_identifier': initial_data_list[0]['project_identifier'],
                 'file_storage': str(initial_data_list[0]['file_storage']),
-                'file_count': len(results.get('success', [])),
+                'file_count': 1 if not results else len(results.get('success', [])),
             }
         ))
-
-        _logger.info('Created %d new files' % len(results.get('success', [])))
 
     @classmethod
     def _create_files(cls, common_info, initial_data_list, results, serializer_class, **kwargs):

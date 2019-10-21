@@ -102,7 +102,7 @@ if executing_in_test_case or executing_in_travis:
             },
             "files":        {
                 "read": ["testuser", "metax", "api_auth_user", "endusers"],
-                "create": ["testuser", "metax"],
+                "create": ["testuser", "metax", "endusers"],
                 "update": ["testuser", "metax", "endusers"],
                 "delete": ["testuser", "metax"]
             },
@@ -167,11 +167,13 @@ if executing_in_test_case or executing_in_travis:
     ATT_DATA_CATALOG_IDENTIFIER = "urn:nbn:fi:att:data-catalog-att"
     PAS_DATA_CATALOG_IDENTIFIER = "urn:nbn:fi:att:data-catalog-pas"
     LEGACY_DATA_CATALOG_IDENTIFIER = "urn:nbn:fi:att:data-catalog-legacy"
+    PAS_FILE_STORAGE_IDENTIFIER = "urn:nbn:fi:att:file-storage-pas"
 else:
     IDA_DATA_CATALOG_IDENTIFIER = app_config_dict['IDA_DATACATALOG_IDENTIFIER']
     ATT_DATA_CATALOG_IDENTIFIER = app_config_dict['ATT_DATACATALOG_IDENTIFIER']
     PAS_DATA_CATALOG_IDENTIFIER = app_config_dict['PAS_DATACATALOG_IDENTIFIER']
     LEGACY_DATA_CATALOG_IDENTIFIER = app_config_dict['LEGACY_DATACATALOG_IDENTIFIER']
+    PAS_FILE_STORAGE_IDENTIFIER = app_config_dict['PAS_FILE_STORAGE_IDENTIFIER']
 
 if executing_in_test_case or executing_in_travis:
     END_USER_ALLOWED_DATA_CATALOGS = [
@@ -184,6 +186,10 @@ if executing_in_test_case or executing_in_travis:
     LEGACY_CATALOGS = [
         LEGACY_DATA_CATALOG_IDENTIFIER,
     ]
+
+    END_USER_ALLOWED_FILE_STORAGES = [
+        PAS_FILE_STORAGE_IDENTIFIER
+    ]
 else:
     # allow end users to create catalogrecords only to the following data catalogs
     END_USER_ALLOWED_DATA_CATALOGS = app_config_dict['END_USER_ALLOWED_DATA_CATALOGS']
@@ -192,6 +198,9 @@ else:
     LEGACY_CATALOGS = [
         LEGACY_DATA_CATALOG_IDENTIFIER,
     ]
+
+    # allow end users to create files only to the following file storages
+    END_USER_ALLOWED_FILE_STORAGES = app_config_dict['END_USER_ALLOWED_FILE_STORAGES']
 
 # endpoint in localhost where bearer tokens should be sent for validation
 VALIDATE_TOKEN_URL = 'https://127.0.0.1/secure/validate_token'

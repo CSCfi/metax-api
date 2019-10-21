@@ -151,8 +151,8 @@ class ApiEndUserAccessAuthorization(CatalogRecordApiWriteCommon):
         Ensure end users are recognized in api create access permissions.
         """
         self._mock_token_validation_succeeds()
-        # end users should not have create access to files api.
-        response = self.client.post('/rest/files', {}, format='json')
+        # end users should not have create access to contracts api.
+        response = self.client.post('/rest/contracts', {}, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.data)
 
     def test_removing_bearer_from_allowed_auth_methods_disables_oidc(self):

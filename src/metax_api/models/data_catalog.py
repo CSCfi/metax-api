@@ -25,6 +25,14 @@ class DataCatalog(Common):
         max_length=200, blank=True, null=True,
         help_text='Group which is allowed to add new catalog records to the catalog.')
 
+    catalog_record_services_edit = models.CharField(
+        max_length=200, blank=True, null=True,
+        help_text='Service which is allowed to edit catalog records in the catalog.')
+
+    catalog_record_services_create = models.CharField(
+        max_length=200, blank=True, null=True,
+        help_text='Service which is allowed to edit catalog records in the catalog.')
+
     # END OF MODEL FIELD DEFINITIONS #
 
     def __init__(self, *args, **kwargs):

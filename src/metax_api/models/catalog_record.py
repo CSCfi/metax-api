@@ -415,7 +415,7 @@ class CatalogRecord(Common):
             # unknown user
             return False
 
-    def _check_catalog_permissions(self, catalog_groups):
+    def _check_catalog_permissions(self, catalog_groups, catalog_services):
         """
         Some data catalogs can only allow writing datasets from a specific group of users.
         Check if user has group/project which permits creating or editing datasets in
@@ -429,11 +429,13 @@ class CatalogRecord(Common):
             assert executing_test_case(), 'only permitted when setting up testing conditions'
             return True
 
-        if not catalog_groups:
+        if not catalog_groups and not catalog_services:
             return True
 
         if self.request.user.is_service:
-            return True
+            allowed_services = [i.lower() for i in catalog_services.split(',')]
+            from metax_api.services import AuthService
+            return AuthService.check_services_against_allowed_services(self.request, allowed_services)
 
         allowed_groups = catalog_groups.split(',')
 
@@ -1018,7 +1020,8 @@ class CatalogRecord(Common):
 
     def _pre_create_operations(self, pid_type=None):
 
-        if not self._check_catalog_permissions(self.data_catalog.catalog_record_group_create):
+        if not self._check_catalog_permissions(self.data_catalog.catalog_record_group_create, 
+                self.data_catalog.catalog_record_services_create):
             raise Http403({ 'detail': [ 'You are not permitted to create datasets in this data catalog.' ]})
 
         if self.catalog_is_pas():
@@ -1143,7 +1146,8 @@ class CatalogRecord(Common):
         self.add_post_request_callable(DelayedLog(**log_args))
 
     def _pre_update_operations(self):
-        if not self._check_catalog_permissions(self.data_catalog.catalog_record_group_edit):
+        if not self._check_catalog_permissions(self.data_catalog.catalog_record_group_edit, 
+                self.data_catalog.catalog_record_services_edit):
             raise Http403({ 'detail': [ 'You are not permitted to edit datasets in this data catalog.' ]})
 
         if self.field_changed('identifier'):

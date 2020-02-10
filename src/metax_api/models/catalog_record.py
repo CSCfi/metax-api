@@ -232,10 +232,11 @@ class CatalogRecord(Common):
     data_catalog = models.ForeignKey(DataCatalog, on_delete=models.DO_NOTHING, related_name='records')
 
     state = models.CharField(
-            max_length=200, 
-            null=False,
-            default='published',
-            help_text='Publishing state (published / draft) of the dataset.')
+        max_length=200,
+        null=False,
+        default='published',
+        help_text='Publishing state (published / draft) of the dataset.'
+    )
 
     dataset_group_edit = models.CharField(
         max_length=200, blank=True, null=True,

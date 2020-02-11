@@ -146,6 +146,6 @@ class AuthService():
         authenticated_service = request.user.username
 
         if authenticated_service in service_list:
-                return True
+            return True
 
         return False

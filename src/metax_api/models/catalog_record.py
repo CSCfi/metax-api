@@ -1020,7 +1020,7 @@ class CatalogRecord(Common):
 
     def _pre_create_operations(self, pid_type=None):
 
-        if not self._check_catalog_permissions(self.data_catalog.catalog_record_group_create, 
+        if not self._check_catalog_permissions(self.data_catalog.catalog_record_group_create,
                 self.data_catalog.catalog_record_services_create):
             raise Http403({ 'detail': [ 'You are not permitted to create datasets in this data catalog.' ]})
 
@@ -1146,7 +1146,7 @@ class CatalogRecord(Common):
         self.add_post_request_callable(DelayedLog(**log_args))
 
     def _pre_update_operations(self):
-        if not self._check_catalog_permissions(self.data_catalog.catalog_record_group_edit, 
+        if not self._check_catalog_permissions(self.data_catalog.catalog_record_group_edit,
                 self.data_catalog.catalog_record_services_edit):
             raise Http403({ 'detail': [ 'You are not permitted to edit datasets in this data catalog.' ]})
 

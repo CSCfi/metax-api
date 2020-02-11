@@ -1044,15 +1044,7 @@ class CatalogRecord(Common):
             raise Http400('Missing query parameter access_granter')
 
     def _pre_create_operations(self, pid_type=None):
-<<<<<<< HEAD
-=======
-
-<<<<<<< HEAD
->>>>>>> Adds catalog_record_services_edit/create to db and basic authentication check for service to create dataset.
         if not self._check_catalog_permissions(self.data_catalog.catalog_record_group_create,
-=======
-        if not self._check_catalog_permissions(self.data_catalog.catalog_record_group_create, 
->>>>>>> Adds catalog_record_services_edit/create to db and basic authentication check for service to create dataset.
                 self.data_catalog.catalog_record_services_create):
             raise Http403({ 'detail': [ 'You are not permitted to create datasets in this data catalog.' ]})
 

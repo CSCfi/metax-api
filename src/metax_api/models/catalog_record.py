@@ -1039,10 +1039,14 @@ class CatalogRecord(Common):
     def _pre_create_operations(self, pid_type=None):
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         if not self._check_catalog_permissions(self.data_catalog.catalog_record_group_create,
 =======
         if not self._check_catalog_permissions(self.data_catalog.catalog_record_group_create, 
 >>>>>>> Adds catalog_record_services_edit/create to db and basic authentication check for service to create dataset.
+=======
+        if not self._check_catalog_permissions(self.data_catalog.catalog_record_group_create,
+>>>>>>> Flake8
                 self.data_catalog.catalog_record_services_create):
             raise Http403({ 'detail': [ 'You are not permitted to create datasets in this data catalog.' ]})
 

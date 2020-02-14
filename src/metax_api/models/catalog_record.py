@@ -221,8 +221,8 @@ class CatalogRecord(Common):
         (CUMULATIVE_STATE_CLOSED, 'closed')
     )
 
-    STATE_PUBLISHED = 'published'
-    STATE_DRAFT = 'draft'
+    STATE_PUBLISHED = 0
+    STATE_DRAFT = 1
 
     STATE_CHOICES = (
         (STATE_PUBLISHED, 'published'),

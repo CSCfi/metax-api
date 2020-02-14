@@ -429,20 +429,9 @@ class CatalogRecord(Common):
             assert executing_test_case(), 'only permitted when setting up testing conditions'
             return True
 
-<<<<<<< HEAD
         if self.request.user.is_service:
             if catalog_services:
                 allowed_services = [i.lower() for i in catalog_services.split(',')]
-=======
-        if not catalog_groups and not catalog_services:
-            return True
-
-        if self.request.user.is_service:
-            allowed_services = [i.lower() for i in catalog_services.split(',')]
-            from metax_api.services import AuthService
-            return AuthService.check_services_against_allowed_services(self.request, allowed_services)
->>>>>>> Adds catalog_record_services_edit/create to db and basic authentication check for service to create dataset.
-
                 from metax_api.services import AuthService
                 return AuthService.check_services_against_allowed_services(self.request, allowed_services)
             return False
@@ -1038,15 +1027,7 @@ class CatalogRecord(Common):
 
     def _pre_create_operations(self, pid_type=None):
 
-<<<<<<< HEAD
-<<<<<<< HEAD
         if not self._check_catalog_permissions(self.data_catalog.catalog_record_group_create,
-=======
-        if not self._check_catalog_permissions(self.data_catalog.catalog_record_group_create, 
->>>>>>> Adds catalog_record_services_edit/create to db and basic authentication check for service to create dataset.
-=======
-        if not self._check_catalog_permissions(self.data_catalog.catalog_record_group_create,
->>>>>>> Flake8
                 self.data_catalog.catalog_record_services_create):
             raise Http403({ 'detail': [ 'You are not permitted to create datasets in this data catalog.' ]})
 

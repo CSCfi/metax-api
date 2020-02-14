@@ -240,7 +240,7 @@ class CatalogRecord(Common):
     data_catalog = models.ForeignKey(DataCatalog, on_delete=models.DO_NOTHING, related_name='records')
 
     state = models.CharField(
-        choices=STATE_CHOICES, 
+        choices=STATE_CHOICES,
         default=STATE_PUBLISHED,
         max_length=200,
         help_text='Publishing state (published / draft) of the dataset.'

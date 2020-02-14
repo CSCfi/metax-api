@@ -221,6 +221,14 @@ class CatalogRecord(Common):
         (CUMULATIVE_STATE_CLOSED, 'closed')
     )
 
+    STATE_PUBLISHED = 'published'
+    STATE_DRAFT = 'draft'
+
+    STATE_CHOICES = (
+        (STATE_PUBLISHED, 'published'),
+        (STATE_DRAFT, 'draft')
+    )
+
     # MODEL FIELD DEFINITIONS #
 
     alternate_record_set = models.ForeignKey(
@@ -232,9 +240,9 @@ class CatalogRecord(Common):
     data_catalog = models.ForeignKey(DataCatalog, on_delete=models.DO_NOTHING, related_name='records')
 
     state = models.CharField(
+        choices=STATE_CHOICES, 
+        default=STATE_PUBLISHED,
         max_length=200,
-        null=False,
-        default='published',
         help_text='Publishing state (published / draft) of the dataset.'
     )
 

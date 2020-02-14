@@ -27,11 +27,11 @@ class DataCatalog(Common):
 
     catalog_record_services_edit = models.CharField(
         max_length=200, blank=True, null=True,
-        help_text='Service which is allowed to edit catalog records in the catalog.')
+        help_text='Services which are allowed to edit catalog records in the catalog.')
 
     catalog_record_services_create = models.CharField(
         max_length=200, blank=True, null=True,
-        help_text='Service which is allowed to edit catalog records in the catalog.')
+        help_text='Services which are allowed to edit catalog records in the catalog.')
 
     # END OF MODEL FIELD DEFINITIONS #
 

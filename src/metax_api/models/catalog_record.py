@@ -429,18 +429,22 @@ class CatalogRecord(Common):
             assert executing_test_case(), 'only permitted when setting up testing conditions'
             return True
 
-        if not catalog_groups and not catalog_services:
-            return True
-
-        if self.request.user.is_service:
+        if catalog_services and self.request.user.is_service:
             allowed_services = [i.lower() for i in catalog_services.split(',')]
+
             from metax_api.services import AuthService
             return AuthService.check_services_against_allowed_services(self.request, allowed_services)
 
-        allowed_groups = catalog_groups.split(',')
+        elif catalog_groups:
+            allowed_groups = catalog_groups.split(',')
 
-        from metax_api.services import AuthService
-        return AuthService.check_user_groups_against_groups(self.request, allowed_groups)
+            from metax_api.services import AuthService
+            return AuthService.check_user_groups_against_groups(self.request, allowed_groups)
+
+        _logger.info(
+            'Catalog {} is not belonging to any service or group '.format(self.data_catalog.catalog_json['identifier'])
+        )
+        return False
 
     def _access_type_is_open(self):
         from metax_api.services import CatalogRecordService as CRS
@@ -1034,6 +1038,7 @@ class CatalogRecord(Common):
             # in harvested catalogs, the harvester is allowed to set the preferred_identifier.
             # do not overwrite.
             pass
+
         elif self.catalog_is_legacy():
             if 'preferred_identifier' not in self.research_dataset:
                 raise ValidationError({

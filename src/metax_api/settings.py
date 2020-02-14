@@ -170,6 +170,8 @@ if executing_in_test_case or executing_in_travis:
     ATT_DATA_CATALOG_IDENTIFIER = "urn:nbn:fi:att:data-catalog-att"
     PAS_DATA_CATALOG_IDENTIFIER = "urn:nbn:fi:att:data-catalog-pas"
     LEGACY_DATA_CATALOG_IDENTIFIER = "urn:nbn:fi:att:data-catalog-legacy"
+    JYVASKYLA_DATA_CATALOG_IDENTIFIER = "urn:nbn:fi:att:data-catalog-jyu"
+
 else:
     IDA_DATA_CATALOG_IDENTIFIER = app_config_dict['IDA_DATACATALOG_IDENTIFIER']
     ATT_DATA_CATALOG_IDENTIFIER = app_config_dict['ATT_DATACATALOG_IDENTIFIER']

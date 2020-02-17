@@ -444,6 +444,7 @@ class CatalogRecord(Common):
         if self.request.user.is_service:
             if catalog_services:
                 allowed_services = [i.lower() for i in catalog_services.split(',')]
+
                 from metax_api.services import AuthService
                 return AuthService.check_services_against_allowed_services(self.request, allowed_services)
             return False
@@ -1170,6 +1171,7 @@ class CatalogRecord(Common):
         self.add_post_request_callable(DelayedLog(**log_args))
 
     def _pre_update_operations(self):
+
         if not self._check_catalog_permissions(self.data_catalog.catalog_record_group_edit,
                 self.data_catalog.catalog_record_services_edit):
             raise Http403({ 'detail': [ 'You are not permitted to edit datasets in this data catalog.' ]})

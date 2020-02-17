@@ -444,10 +444,7 @@ class CatalogRecord(Common):
         if self.request.user.is_service:
             if catalog_services:
                 allowed_services = [i.lower() for i in catalog_services.split(',')]
-<<<<<<< HEAD
 
-=======
->>>>>>> Adds logic for checking missing groups or services; adds swagger documentation; corrects typos.
                 from metax_api.services import AuthService
                 return AuthService.check_services_against_allowed_services(self.request, allowed_services)
             return False

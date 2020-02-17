@@ -1082,7 +1082,12 @@ class CatalogRecordApiWritePreservationStateTests(CatalogRecordApiWriteCommon):
         catalog_json = dc.catalog_json
         catalog_json['identifier'] = django_settings.PAS_DATA_CATALOG_IDENTIFIER
         catalog_json['dataset_versioning'] = False
-        dc = DataCatalog.objects.create(catalog_json=catalog_json, date_created=get_tz_aware_now_without_micros())
+        dc = DataCatalog.objects.create(
+            catalog_json=catalog_json,
+            date_created=get_tz_aware_now_without_micros(),
+            catalog_record_services_create='testuser,api_auth_user',
+            catalog_record_services_edit='testuser,api_auth_user'
+        )
 
     def test_update_catalog_record_pas_state_allowed_value(self):
         cr = self.client.get('/rest/datasets/1').data
@@ -3452,7 +3457,12 @@ class CatalogRecordApiEndUserAccess(CatalogRecordApiWriteCommon):
         catalog_json = dc.catalog_json
         for identifier in END_USER_ALLOWED_DATA_CATALOGS:
             catalog_json['identifier'] = identifier
-            dc = DataCatalog.objects.create(catalog_json=catalog_json, date_created=get_tz_aware_now_without_micros())
+            dc = DataCatalog.objects.create(
+                catalog_json=catalog_json,
+                date_created=get_tz_aware_now_without_micros(),
+                catalog_record_services_create='testuser,api_auth_user',
+                catalog_record_services_edit='testuser,api_auth_user'
+            )
 
         self.token = get_test_oidc_token()
 
@@ -3615,12 +3625,14 @@ class CatalogRecordApiEndUserAccess(CatalogRecordApiWriteCommon):
         self.cr_test_data['editor'] = { 'owner_id': self.token['sub'] }
 
         self._use_http_authorization() # create cr as a service-user to ensure editor-field is set
+
         response = self.client.post('/rest/datasets', self.cr_test_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
 
         response = self.client.get('/rest/datasets/%d' % response.data['id'], format="json")
         modified_data = response.data
         modified_data['research_dataset']['value'] = 112233
+
         response = self.client.put('/rest/datasets/%d' % response.data['id'], modified_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 

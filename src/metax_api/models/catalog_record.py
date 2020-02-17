@@ -429,17 +429,21 @@ class CatalogRecord(Common):
             assert executing_test_case(), 'only permitted when setting up testing conditions'
             return True
 
-        if catalog_services and self.request.user.is_service:
-            allowed_services = [i.lower() for i in catalog_services.split(',')]
+        if self.request.user.is_service:
+            if catalog_services:
+                allowed_services = [i.lower() for i in catalog_services.split(',')]
 
-            from metax_api.services import AuthService
-            return AuthService.check_services_against_allowed_services(self.request, allowed_services)
+                from metax_api.services import AuthService
+                return AuthService.check_services_against_allowed_services(self.request, allowed_services)
+            return False
 
-        elif catalog_groups:
-            allowed_groups = catalog_groups.split(',')
+        elif not self.request.user.is_service:
+            if catalog_groups:
+                allowed_groups = catalog_groups.split(',')
 
-            from metax_api.services import AuthService
-            return AuthService.check_user_groups_against_groups(self.request, allowed_groups)
+                from metax_api.services import AuthService
+                return AuthService.check_user_groups_against_groups(self.request, allowed_groups)
+            return True
 
         _logger.info(
             'Catalog {} is not belonging to any service or group '.format(self.data_catalog.catalog_json['identifier'])
@@ -1151,6 +1155,7 @@ class CatalogRecord(Common):
         self.add_post_request_callable(DelayedLog(**log_args))
 
     def _pre_update_operations(self):
+
         if not self._check_catalog_permissions(self.data_catalog.catalog_record_group_edit,
                 self.data_catalog.catalog_record_services_edit):
             raise Http403({ 'detail': [ 'You are not permitted to edit datasets in this data catalog.' ]})

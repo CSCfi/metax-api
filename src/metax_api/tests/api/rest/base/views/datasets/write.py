@@ -158,6 +158,21 @@ class CatalogRecordDraftTests(CatalogRecordApiWriteCommon):
     """
     Tests related to draft datasets
     """
+    def setUp(self):
+        super().setUp()
+
+        self.token = get_test_oidc_token(new_proxy=True)
+        self._mock_token_validation_succeeds()
+        # Create published record with owner: testuser and pk 1
+        # Create draft records with owner: testuser, pk: 2 and owner: 'some owner who is not you', pk 3
+        self._set_cr_owner_and_state(1, 'published', self.token['CSCUserName']) # Published dataset
+        self.assertEqual(CatalogRecord.objects.get(pk=1).metadata_provider_user, 'testuser')
+
+        self._set_cr_owner_and_state(2, 'draft', self.token['CSCUserName']) # testusers' draft
+        self.assertEqual(CatalogRecord.objects.get(pk=2).metadata_provider_user, 'testuser')
+
+        self._set_cr_owner_and_state(3, 'draft', '#### Some owner who is not you ####') # Draft dataset for some user
+        self.assertNotEqual(CatalogRecord.objects.get(pk=3).metadata_provider_user, 'testuser')
 
     def test_field_exists(self):
         """Try fetching any dataset, field 'state' should be returned'"""
@@ -188,22 +203,8 @@ class CatalogRecordDraftTests(CatalogRecordApiWriteCommon):
     @responses.activate
     def test_endusers_access_to_draft_datasets(self):
         ''' End user should get published data and his/her drafts '''
-
-        # Set end user
-        self.token = get_test_oidc_token(new_proxy=True)
+        # Test access as end user
         self._use_http_authorization(method='bearer', token=self.token)
-        self._mock_token_validation_succeeds()
-
-        # Create published record with testuser- owner and draft records
-        # with default & testuser-owner
-        self._set_cr_owner_and_state(1, 'published', self.token['CSCUserName']) # Published dataset
-        self.assertEqual(CatalogRecord.objects.get(pk=1).metadata_provider_user, 'testuser')
-
-        self._set_cr_owner_and_state(2, 'draft', self.token['CSCUserName']) # testusers' draft
-        self.assertEqual(CatalogRecord.objects.get(pk=2).metadata_provider_user, 'testuser')
-
-        self._set_cr_owner_and_state(3, 'draft', '#### Some owner who is not you ####') # Draft dataset for some user
-        self.assertNotEqual(CatalogRecord.objects.get(pk=3).metadata_provider_user, 'testuser')
 
         # Test access for owner of dataset
         response = self.client.get('/rest/datasets/1')
@@ -215,24 +216,11 @@ class CatalogRecordDraftTests(CatalogRecordApiWriteCommon):
         # Test for multiple datasets
         response = self.client.get('/rest/datasets', format="json")
         # Returned list of datasets should not have owner "#### Some owner who is not you ####"
-        owner = [response.data['results'][i]['metadata_provider_user'] for i in range(0, len(response.data['results']))]
-        self.assertEqual('#### Some owner who is not you ####' not in owner, True, response.data)
+        owners = [cr['metadata_provider_user'] for cr in response.data['results']]
+        self.assertEqual('#### Some owner who is not you ####' not in owners, True, response.data)
 
     def test_service_users_access_to_draft_datasets(self):
         ''' Service users should get all data '''
-        self.token = get_test_oidc_token(new_proxy=True)
-        self._mock_token_validation_succeeds()
-
-        # Create published record with testuser- owner and draft records with default & testuser-owner
-        self._set_cr_owner_and_state(1, 'published', self.token['CSCUserName']) # Published dataset
-        self.assertEqual(CatalogRecord.objects.get(pk=1).metadata_provider_user, 'testuser')
-
-        self._set_cr_owner_and_state(2, 'draft', self.token['CSCUserName']) # Testusers' draft
-        self.assertEqual(CatalogRecord.objects.get(pk=2).metadata_provider_user, 'testuser')
-
-        self._set_cr_owner_and_state(3, 'draft', '#### Some owner who is not you ####') # Draft dataset for some user
-        self.assertNotEqual(CatalogRecord.objects.get(pk=3).metadata_provider_user, 'testuser')
-
         # test access as a service-user
         self._use_http_authorization(method='basic', username='metax')
 
@@ -245,24 +233,11 @@ class CatalogRecordDraftTests(CatalogRecordApiWriteCommon):
         # test for multiple datasets
         response = self.client.get('/rest/datasets', format="json")
         # Returned list of datasets should have owner "#### Some owner who is not you ####"
-        owner = [response.data['results'][i]['metadata_provider_user'] for i in range(0, len(response.data['results']))]
-        self.assertEqual('#### Some owner who is not you ####' in owner, True, response.data)
+        owners = [cr['metadata_provider_user'] for cr in response.data['results']]
+        self.assertEqual('#### Some owner who is not you ####' in owners, True, response.data)
 
     def test_anonymous_users_access_to_draft_datasets(self):
         ''' Unauthenticated user should get only published datasets '''
-        self.token = get_test_oidc_token(new_proxy=True)
-        self._mock_token_validation_succeeds()
-
-        # Create published record with testuser- owner and draft records with default & testuser-owner
-        self._set_cr_owner_and_state(1, 'published', self.token['CSCUserName']) # Published dataset
-        self.assertEqual(CatalogRecord.objects.get(pk=1).metadata_provider_user, 'testuser')
-
-        self._set_cr_owner_and_state(2, 'draft', self.token['CSCUserName']) # testusers' draft
-        self.assertEqual(CatalogRecord.objects.get(pk=2).metadata_provider_user, 'testuser')
-
-        self._set_cr_owner_and_state(3, 'draft', '#### Some owner who is not you ####') # Draft dataset for some user
-        self.assertNotEqual(CatalogRecord.objects.get(pk=3).metadata_provider_user, 'testuser')
-
         # Test access as unauthenticated user
         self.client._credentials = {}
 
@@ -275,7 +250,7 @@ class CatalogRecordDraftTests(CatalogRecordApiWriteCommon):
         # test for multiple datasets
         response = self.client.get('/rest/datasets', format="json")
         # Returned list of datasets should not have drafts
-        states = [response.data['results'][i]['state'] for i in range(0, len(response.data['results']))]
+        states = [cr['state'] for cr in response.data['results']]
         self.assertEqual('draft' not in states, True, response.data)
 
 

@@ -55,63 +55,61 @@ class CatalogRecordService(CommonService, ReferenceDataMixin):
         queryset_search_params = {}
 
         if not request.query_params:
-            queryset = cls.filter_by_state(request, {})
-            return queryset
+            return cls.filter_by_state(request, queryset_search_params)
 
-        else:
-            queryset_search_params = cls.filter_by_state(request, {})
+        queryset_search_params = cls.filter_by_state(request, queryset_search_params)
 
-            if request.query_params.get('state', False):
-                state_vals = request.query_params['state'].split(',')
-                for val in state_vals:
-                    try:
-                        int(val)
-                    except ValueError:
-                        raise Http400({ 'state': ['Value \'%s\' is not an integer' % val] })
-                queryset_search_params['preservation_state__in'] = state_vals
+        if request.query_params.get('state', False):
+            state_vals = request.query_params['state'].split(',')
+            for val in state_vals:
+                try:
+                    int(val)
+                except ValueError:
+                    raise Http400({ 'state': ['Value \'%s\' is not an integer' % val] })
+            queryset_search_params['preservation_state__in'] = state_vals
 
-            if CommonService.get_boolean_query_param(request, 'latest'):
-                queryset_search_params['next_dataset_version_id'] = None
+        if CommonService.get_boolean_query_param(request, 'latest'):
+            queryset_search_params['next_dataset_version_id'] = None
 
-            if request.query_params.get('deprecated', None) is not None:
-                queryset_search_params['deprecated'] = CommonService.get_boolean_query_param(request, 'deprecated')
+        if request.query_params.get('deprecated', None) is not None:
+            queryset_search_params['deprecated'] = CommonService.get_boolean_query_param(request, 'deprecated')
 
-            if request.query_params.get('curator', False):
-                queryset_search_params['research_dataset__contains'] = \
-                    {'curator': [{ 'identifier': request.query_params['curator']}]}
+        if request.query_params.get('curator', False):
+            queryset_search_params['research_dataset__contains'] = \
+                {'curator': [{ 'identifier': request.query_params['curator']}]}
 
-            if request.query_params.get('owner_id', False):
-                queryset_search_params['editor__contains'] = { 'owner_id': request.query_params['owner_id'] }
+        if request.query_params.get('owner_id', False):
+            queryset_search_params['editor__contains'] = { 'owner_id': request.query_params['owner_id'] }
 
-            if request.query_params.get('user_created', False):
-                queryset_search_params['user_created'] = request.query_params['user_created']
+        if request.query_params.get('user_created', False):
+            queryset_search_params['user_created'] = request.query_params['user_created']
 
-            if request.query_params.get('editor', False):
-                queryset_search_params['editor__contains'] = { 'identifier': request.query_params['editor'] }
+        if request.query_params.get('editor', False):
+            queryset_search_params['editor__contains'] = { 'identifier': request.query_params['editor'] }
 
-            if request.query_params.get('metadata_provider_user', False):
-                queryset_search_params['metadata_provider_user'] = request.query_params['metadata_provider_user']
+        if request.query_params.get('metadata_provider_user', False):
+            queryset_search_params['metadata_provider_user'] = request.query_params['metadata_provider_user']
 
-            if request.query_params.get('metadata_owner_org', False):
-                queryset_search_params['metadata_owner_org__in'] = request.query_params['metadata_owner_org'].split(',')
+        if request.query_params.get('metadata_owner_org', False):
+            queryset_search_params['metadata_owner_org__in'] = request.query_params['metadata_owner_org'].split(',')
 
-            if request.query_params.get('contract_org_identifier', False):
-                if request.user.username not in ('metax', 'tpas'):
-                    raise Http403({ 'detail': ['query parameter pas_filter is restricted']})
-                queryset_search_params['contract__contract_json__organization__organization_identifier__iregex'] = \
-                    request.query_params['contract_org_identifier']
+        if request.query_params.get('contract_org_identifier', False):
+            if request.user.username not in ('metax', 'tpas'):
+                raise Http403({ 'detail': ['query parameter pas_filter is restricted']})
+            queryset_search_params['contract__contract_json__organization__organization_identifier__iregex'] = \
+                request.query_params['contract_org_identifier']
 
-            if request.query_params.get('pas_filter', False):
-                cls.set_pas_filter(queryset_search_params, request)
+        if request.query_params.get('pas_filter', False):
+            cls.set_pas_filter(queryset_search_params, request)
 
-            if CommonService.has_research_agent_query_params(request):
-                cls.set_actor_filters(queryset_search_params, request)
+        if CommonService.has_research_agent_query_params(request):
+            cls.set_actor_filters(queryset_search_params, request)
 
-            if request.query_params.get('data_catalog', False):
-                queryset_search_params['data_catalog__catalog_json__identifier__iregex'] = \
-                    request.query_params['data_catalog']
+        if request.query_params.get('data_catalog', False):
+            queryset_search_params['data_catalog__catalog_json__identifier__iregex'] = \
+                request.query_params['data_catalog']
 
-            return queryset_search_params
+        return queryset_search_params
 
     @staticmethod
     def filter_by_state(request, queryset_search_params):
@@ -129,13 +127,11 @@ class CatalogRecordService(CommonService, ReferenceDataMixin):
         else: # enduser api
             state_filter = Q(state='published') | Q(state='draft', metadata_provider_user=request.user.username)
 
-        #if state_filter:
-        if 'q_filters' in queryset_search_params:
-            queryset_search_params['q_filters'].append(state_filter)
-        elif state_filter is None:
-            queryset_search_params = {}
-        else:
-            queryset_search_params['q_filters'] = [state_filter]
+        if state_filter:
+            if 'q_filters' in queryset_search_params:
+                queryset_search_params['q_filters'].append(state_filter)
+            else:
+                queryset_search_params['q_filters'] = [state_filter]
 
         return queryset_search_params
 

@@ -4168,7 +4168,6 @@ class CatalogRecordServicesAccess(CatalogRecordApiWriteCommon):
         cr_id = response.data['id']
         response = self.client.delete('/rest/datasets/{}'.format(cr_id))
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, response.data)
-
         response = self.client.get('/rest/datasets/{}'.format(cr_id), format="json")
         self.assertEqual('not found' in response.json()['detail'].lower(), True)
 

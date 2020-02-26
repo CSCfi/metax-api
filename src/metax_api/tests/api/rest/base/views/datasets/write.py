@@ -4014,7 +4014,7 @@ class CatalogRecordServicesAccess(CatalogRecordApiWriteCommon):
         self._use_http_authorization(username=django_settings.API_EXT_USER['username'],
             password=django_settings.API_EXT_USER['password'])
 
-    def test_external_service_can_add_cr_to_own_catalog(self):
+    def test_external_service_can_add_catalog_record_to_own_catalog(self):
         self.cr_test_data['data_catalog'] = EXT_CATALOG
         self.cr_test_data['research_dataset']['preferred_identifier'] = '123456'
         response = self.client.post('/rest/datasets', self.cr_test_data, format="json")
@@ -4022,7 +4022,7 @@ class CatalogRecordServicesAccess(CatalogRecordApiWriteCommon):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
         self.assertEqual(response.data['research_dataset']['preferred_identifier'], '123456')
 
-    def test_external_service_can_update_cr_in_own_catalog(self):
+    def test_external_service_can_update_catalog_record_in_own_catalog(self):
         self.cr_test_data['data_catalog'] = EXT_CATALOG
         self.cr_test_data['research_dataset']['preferred_identifier'] = '123456'
         response = self.client.post('/rest/datasets', self.cr_test_data, format="json")
@@ -4037,20 +4037,15 @@ class CatalogRecordServicesAccess(CatalogRecordApiWriteCommon):
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
         self.assertEqual(response.data['research_dataset']['preferred_identifier'], '654321')
 
-    def test_external_service_can_not_add_cr_to_other_catalog(self):
+    def test_external_service_can_not_add_catalog_record_to_other_catalog(self):
         dc = self._get_object_from_test_data('datacatalog', requested_index=1)
         self.cr_test_data['data_catalog'] = dc['catalog_json']['identifier']
         response = self.client.post('/rest/datasets', self.cr_test_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.data)
 
-    def test_external_service_can_not_update_cr_in_other_catalog(self):
-        self._use_http_authorization()
-        dc = self._get_object_from_test_data('datacatalog', requested_index=1)
-        self.cr_test_data['data_catalog'] = dc['catalog_json']['identifier']
-        response = self.client.post('/rest/datasets', self.cr_test_data, format="json")
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+    def test_external_service_can_not_update_catalog_record_in_other_catalog(self):
+        response = self.client.get('/rest/datasets/1')
 
         cr_id = response.data['id']
         self._use_http_authorization(username=django_settings.API_EXT_USER['username'],
@@ -4060,13 +4055,13 @@ class CatalogRecordServicesAccess(CatalogRecordApiWriteCommon):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.data)
 
-    def test_external_service_not_creating_cr_identifier(self):
+    def test_external_service_not_creating_catalog_record_identifier(self):
         self.cr_test_data['data_catalog'] = EXT_CATALOG
 
         response = self.client.post('/rest/datasets', self.cr_test_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
-        self.assertIsNone(response.data['research_dataset'].get('preferred_identifier'))
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, response.data)
+        self.assertEqual('research_dataset is missing preferred_identifier' in response.data, True)
         self.assertIsNotNone(response.data['research_dataset']['access_rights'])
 
     def test_catalog_permissions_not_empty(self):

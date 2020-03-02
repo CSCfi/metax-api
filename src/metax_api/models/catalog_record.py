@@ -30,6 +30,7 @@ from .file import File
 
 
 READ_METHODS = ('GET', 'HEAD', 'OPTIONS')
+UPDATE_METHODS = ('PUT', 'PATCH')
 DEBUG = settings.DEBUG
 _logger = logging.getLogger(__name__)
 
@@ -384,6 +385,10 @@ class CatalogRecord(Common):
                     return True
                 else:
                     raise Http404
+
+        elif request.method in UPDATE_METHODS:
+            if self.state == self.STATE_DRAFT and self.metadata_provider_user != request.user.username:
+                raise Http404
 
         # write operation
         return self.user_is_owner(request)

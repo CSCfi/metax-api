@@ -200,4 +200,9 @@ class ServicePermissions(MetaxAPIPermissions):
         """
         For service users, always returns True, since it is assumed they know what they are doing.
         """
-        return True
+
+        has_perm = obj.user_has_access(request)
+
+        if not has_perm:
+            self.message = 'You are not permitted to access this resource.'
+        return has_perm

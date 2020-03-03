@@ -369,6 +369,11 @@ class CatalogRecord(Common):
         In the future, will probably be more involved checking...
         """
         if request.user.is_service:
+            if request.method == 'GET':
+                return True
+            if not self._check_catalog_permissions(self.data_catalog.catalog_record_group_edit,
+                    self.data_catalog.catalog_record_services_edit, request):
+                return False
             return True
 
         elif request.method in READ_METHODS:
@@ -415,7 +420,7 @@ class CatalogRecord(Common):
             # unknown user
             return False
 
-    def _check_catalog_permissions(self, catalog_groups, catalog_services):
+    def _check_catalog_permissions(self, catalog_groups, catalog_services, request=None):
         """
         Some data catalogs can only allow writing datasets from a specific group of users.
         Check if user has group/project which permits creating or editing datasets in
@@ -424,6 +429,9 @@ class CatalogRecord(Common):
         Note that there is also parameter END_USER_ALLOWED_DATA_CATALOGS in
         settings.py which dictates which catalogs are open for end users.
         """
+
+        if request:
+            self.request = request
         if not self.request: # pragma: no cover
             # should only only happen when setting up test cases
             assert executing_test_case(), 'only permitted when setting up testing conditions'
@@ -432,7 +440,6 @@ class CatalogRecord(Common):
         if self.request.user.is_service:
             if catalog_services:
                 allowed_services = [i.lower() for i in catalog_services.split(',')]
-
                 from metax_api.services import AuthService
                 return AuthService.check_services_against_allowed_services(self.request, allowed_services)
             return False

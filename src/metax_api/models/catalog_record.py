@@ -432,6 +432,7 @@ class CatalogRecord(Common):
         Note that there is also parameter END_USER_ALLOWED_DATA_CATALOGS in
         settings.py which dictates which catalogs are open for end users.
         """
+
         # populates self.request if not existing; happens with DELETE-request when self.request object is empty
         if request:
             self.request = request
@@ -444,7 +445,6 @@ class CatalogRecord(Common):
         if self.request.user.is_service:
             if catalog_services:
                 allowed_services = [i.lower() for i in catalog_services.split(',')]
-
                 from metax_api.services import AuthService
                 return AuthService.check_services_against_allowed_services(self.request, allowed_services)
             return False

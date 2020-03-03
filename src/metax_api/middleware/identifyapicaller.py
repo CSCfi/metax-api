@@ -14,7 +14,6 @@ import requests
 from django.conf import settings as django_settings
 from django.http import HttpResponseForbidden
 
-from django.http import Http404
 from metax_api.exceptions import Http403
 from metax_api.utils import executing_test_case, executing_travis
 
@@ -110,7 +109,7 @@ class _IdentifyApiCaller():
         if not http_auth_header:
             _logger.warning('Unauthenticated access attempt from ip: %s. Authorization header missing'
                             % request.META['REMOTE_ADDR'])
-            raise Http404
+            raise Http403
 
         try:
             auth_method, auth_b64 = http_auth_header.split(' ')

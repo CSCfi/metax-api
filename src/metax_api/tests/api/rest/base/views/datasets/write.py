@@ -272,107 +272,76 @@ class CatalogRecordDraftTests(CatalogRecordApiWriteCommon):
     @responses.activate
     def test_endusers_can_update_draft_datasets(self):
         ''' End user should be able to update only his/her drafts '''
-        # Test update access as end user
+        # Set end user
         self._use_http_authorization(method='bearer', token=self.token)
 
-        data1 = self.client.get('/rest/datasets/1').data # published
-        response = self.client.patch('/rest/datasets/1', data1, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        for http_verb in ['put', 'patch']:
+            update_request = getattr(self.client, http_verb)
+            data1 = self.client.get('/rest/datasets/1').data # published
+            response = update_request('/rest/datasets/1', data1, format="json")
+            self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
 
-        data2 = self.client.get('/rest/datasets/2').data # end users own draft
-        response = self.client.patch('/rest/datasets/2', data2, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+            data2 = self.client.get('/rest/datasets/2').data # end users own draft
+            response = update_request('/rest/datasets/2', data2, format="json")
+            self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
 
-        data3 = self.client.get('/rest/datasets/3').data # someone elses draft
-        response = self.client.patch('/rest/datasets/3', data3, format="json")
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, response.data)
+            data3 = self.client.get('/rest/datasets/3').data # someone elses draft
+            response = update_request('/rest/datasets/3', data3, format="json")
+            self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, response.data)
 
-        # try put
-        response = self.client.put('/rest/datasets/1', data1, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
-
-        response = self.client.put('/rest/datasets/2', data2, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
-
-        response = self.client.put('/rest/datasets/3', data3, format="json")
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, response.data)
-
-        # test for multiple datasets
-
-        response = self.client.patch('/rest/datasets', [data1, data2, data3], format="json")
-        owners = [cr['object']['metadata_provider_user'] for cr in response.data['success']]
-        self.assertEqual('#### Some owner who is not you ####' not in owners, True, response.data)
-
-        response = self.client.put('/rest/datasets', [data1, data2, data3], format="json")
-        owners = [cr['object']['metadata_provider_user'] for cr in response.data['success']]
-        self.assertEqual('#### Some owner who is not you ####' not in owners, True, response.data)
+            # test for multiple datasets
+            response = update_request('/rest/datasets', [data1, data2, data3], format="json")
+            owners = [cr['object']['metadata_provider_user'] for cr in response.data['success']]
+            self.assertEqual('#### Some owner who is not you ####' not in owners, True, response.data)
 
     def test_service_users_can_update_draft_datasets(self):
-        ''' Service users should get all data '''
-        # test access as a service-user
+        ''' Dataset drafts should be able to be updated by service users (service is responsible that
+            their current user in e.g. Qvain is allowed to access the dataset)'''
+        # Set service-user
         self._use_http_authorization(method='basic', username='metax')
 
-        data1 = self.client.get('/rest/datasets/1').data # published
-        response = self.client.patch('/rest/datasets/1', data1, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        for http_verb in ['put', 'patch']:
+            update_request = getattr(self.client, http_verb)
+            data1 = self.client.get('/rest/datasets/1').data # published
+            response = update_request('/rest/datasets/1', data1, format="json")
+            self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
 
-        data2 = self.client.get('/rest/datasets/2').data # draft
-        response = self.client.patch('/rest/datasets/2', data2, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
-        # Dataset drafts should be able to be updated by service users (service is responsible that
-        # their current user in e.g. Qvain is allowed to access the dataset)
-        data3 = self.client.get('/rest/datasets/3').data
-        response = self.client.patch('/rest/datasets/3', data3, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
-        # try put
-        response = self.client.put('/rest/datasets/1', data1, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
-        response = self.client.put('/rest/datasets/2', data2, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
-        response = self.client.put('/rest/datasets/3', data3, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+            data2 = self.client.get('/rest/datasets/2').data # draft
+            response = update_request('/rest/datasets/2', data2, format="json")
+            self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
 
-        # test for multiple datasets
-        response = self.client.patch('/rest/datasets', [data1, data2, data3], format="json")
-        self.assertEqual(len(response.data['success']), 3, 'response.data should contain 3 changed objects')
-        owners = [cr['object']['metadata_provider_user'] for cr in response.data['success']]
-        self.assertEqual('#### Some owner who is not you ####' in owners, True, response.data)
+            data3 = self.client.get('/rest/datasets/3').data # draft
+            response = update_request('/rest/datasets/3', data3, format="json")
+            self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
 
-        response = self.client.put('/rest/datasets', [data1, data2, data3], format="json")
-        self.assertEqual(len(response.data['success']), 3, 'response.data should contain 3 changed objects')
-        owners = [cr['object']['metadata_provider_user'] for cr in response.data['success']]
-        self.assertEqual('#### Some owner who is not you ####' in owners, True, response.data)
+            # test for multiple datasets
+            response = update_request('/rest/datasets', [data1, data2, data3], format="json")
+            self.assertEqual(len(response.data['success']), 3, 'response.data should contain 3 changed objects')
+            owners = [cr['object']['metadata_provider_user'] for cr in response.data['success']]
+            self.assertEqual('#### Some owner who is not you ####' in owners, True, response.data)
 
-    def test_anonymous_user_can_update_draft_datasets(self):
+    def test_anonymous_user_cannot_update_draft_datasets(self):
         ''' Unauthenticated user should not be able to know drafts exists in the first place'''
-        # Test access as unauthenticated user
+        # Set unauthenticated user
         self.client._credentials = {}
 
         # Fetches a published dataset since unauthenticated user can't get drafts
         response = self.client.get('/rest/datasets/1')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
         data = response.data
-        # try patch
-        response = self.client.patch('/rest/datasets/1', data, format="json") # published
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, response.status_code)
-        response = self.client.patch('/rest/datasets/2', data, format="json") # draft
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, response.status_code)
-        response = self.client.patch('/rest/datasets/3', data, format="json") # draft
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, response.status_code)
-        # try put
-        response = self.client.put('/rest/datasets/1', data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, response.status_code)
-        response = self.client.put('/rest/datasets/2', data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, response.status_code)
-        response = self.client.put('/rest/datasets/3', data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, response.status_code)
 
-        # test for multiple datasets
-        response = self.client.patch('/rest/datasets', data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, response.status_code)
+        for http_verb in ['put', 'patch']:
+            update_request = getattr(self.client, http_verb)
+            response = update_request('/rest/datasets/1', data, format="json") # published
+            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.status_code)
+            response = update_request('/rest/datasets/2', data, format="json") # draft
+            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.status_code)
+            response = update_request('/rest/datasets/3', data, format="json") # draft
+            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.status_code)
 
-        response = self.client.put('/rest/datasets', data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, response.status_code)
+            # test for multiple datasets
+            response = update_request('/rest/datasets', data, format="json")
+            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.status_code)
 
 
 class CatalogRecordApiWriteCreateTests(CatalogRecordApiWriteCommon):
@@ -1136,6 +1105,7 @@ class CatalogRecordApiWritePartialUpdateTests(CatalogRecordApiWriteCommon):
         self.assertEqual('detail' in response.data['failed'][0]['errors'], True, response.data['failed'][0]['errors'])
         self.assertEqual('identifying key' in response.data['failed'][0]['errors']['detail'][0], True,
                          response.data['failed'][0]['errors'])
+
 
 class CatalogRecordApiWriteDeleteTests(CatalogRecordApiWriteCommon):
     #

@@ -30,7 +30,6 @@ from .file import File
 
 
 READ_METHODS = ('GET', 'HEAD', 'OPTIONS')
-UPDATE_METHODS = ('PUT', 'PATCH')
 DEBUG = settings.DEBUG
 _logger = logging.getLogger(__name__)
 
@@ -386,9 +385,8 @@ class CatalogRecord(Common):
                 else:
                     raise Http404
 
-        elif request.method in UPDATE_METHODS:
-            if self.state == self.STATE_DRAFT and self.metadata_provider_user != request.user.username:
-                raise Http404
+        if self.state == self.STATE_DRAFT and self.metadata_provider_user != request.user.username:
+            raise Http404
 
         # write operation
         return self.user_is_owner(request)
@@ -399,6 +397,8 @@ class CatalogRecord(Common):
         elif self.metadata_provider_user:
             return request.user.username == self.metadata_provider_user
 
+        if self.state == self.STATE_DRAFT and self.metadata_provider_user != request.user.username:
+            raise Http404
         # note: once access control plans evolve, user_created may not be a legit field ever
         # to check access from. but until then ...
         return request.user.username == self.user_created

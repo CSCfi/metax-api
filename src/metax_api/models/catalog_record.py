@@ -432,7 +432,7 @@ class CatalogRecord(Common):
         Note that there is also parameter END_USER_ALLOWED_DATA_CATALOGS in
         settings.py which dictates which catalogs are open for end users.
         """
-        # populates request if 'self' doesn't have one; used with DELETE-request
+        # populates self.request if not existing; happens with DELETE-request when self.request object is empty
         if request:
             self.request = request
 

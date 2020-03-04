@@ -167,7 +167,12 @@ class CatalogRecordDraftTests(CatalogRecordApiWriteCommon):
         catalog_json = dc.catalog_json
         for identifier in END_USER_ALLOWED_DATA_CATALOGS:
             catalog_json['identifier'] = identifier
-            dc = DataCatalog.objects.create(catalog_json=catalog_json, date_created=get_tz_aware_now_without_micros())
+            dc = DataCatalog.objects.create(
+                catalog_json=catalog_json,
+                date_created=get_tz_aware_now_without_micros(),
+                catalog_record_services_create='testuser,api_auth_user,metax',
+                catalog_record_services_edit='testuser,api_auth_user,metax'
+            )
 
         self.token = get_test_oidc_token(new_proxy=True)
         self._mock_token_validation_succeeds()
@@ -1176,8 +1181,8 @@ class CatalogRecordApiWritePreservationStateTests(CatalogRecordApiWriteCommon):
         dc = DataCatalog.objects.create(
             catalog_json=catalog_json,
             date_created=get_tz_aware_now_without_micros(),
-            catalog_record_services_create='testuser,api_auth_user',
-            catalog_record_services_edit='testuser,api_auth_user'
+            catalog_record_services_create='testuser,api_auth_user,metax',
+            catalog_record_services_edit='testuser,api_auth_user,metax'
         )
 
     def test_update_catalog_record_pas_state_allowed_value(self):
@@ -3554,8 +3559,8 @@ class CatalogRecordApiEndUserAccess(CatalogRecordApiWriteCommon):
             dc = DataCatalog.objects.create(
                 catalog_json=catalog_json,
                 date_created=get_tz_aware_now_without_micros(),
-                catalog_record_services_create='testuser,api_auth_user',
-                catalog_record_services_edit='testuser,api_auth_user'
+                catalog_record_services_create='testuser,api_auth_user,metax',
+                catalog_record_services_edit='testuser,api_auth_user,metax'
             )
 
         self.token = get_test_oidc_token()

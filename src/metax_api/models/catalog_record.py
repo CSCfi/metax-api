@@ -385,9 +385,6 @@ class CatalogRecord(Common):
                 else:
                     raise Http404
 
-        if self.state == self.STATE_DRAFT and self.metadata_provider_user != request.user.username:
-            raise Http404
-
         # write operation
         return self.user_is_owner(request)
 

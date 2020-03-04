@@ -429,9 +429,10 @@ class CatalogRecord(Common):
         Note that there is also parameter END_USER_ALLOWED_DATA_CATALOGS in
         settings.py which dictates which catalogs are open for end users.
         """
-
+        # populates request if 'self' doesn't have one; used with DELETE-request
         if request:
             self.request = request
+
         if not self.request: # pragma: no cover
             # should only only happen when setting up test cases
             assert executing_test_case(), 'only permitted when setting up testing conditions'

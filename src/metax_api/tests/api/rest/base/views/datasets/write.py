@@ -4044,13 +4044,10 @@ class CatalogRecordServicesAccess(CatalogRecordApiWriteCommon):
         self.cr_test_data['research_dataset']['preferred_identifier'] = '123456'
         response = self.client.post('/rest/datasets', self.cr_test_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
-        self.assertEqual(response.data['research_dataset']['preferred_identifier'], '123456')
-
         cr_id = response.data['id']
         response = self.client.delete('/rest/datasets/{}'.format(cr_id))
-
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, response.data)
+
         response = self.client.get('/rest/datasets/{}'.format(cr_id), format="json")
         self.assertEqual('not found' in response.json()['detail'].lower(), True)
 

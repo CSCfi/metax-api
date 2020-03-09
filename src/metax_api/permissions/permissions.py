@@ -189,8 +189,4 @@ class ServicePermissions(MetaxAPIPermissions):
         return request.user.username in self.perms['rest'][api_name].get(operation_type, [])
 
     def _check_user_rpc_perms(self, request, api_name, rpc_method_name):
-<<<<<<< HEAD
         return request.user.username in self.perms['rpc'][api_name][rpc_method_name]['use']
-=======
-        return request.user.username in self.perms['rpc'][api_name][rpc_method_name]['use']
->>>>>>> CSCFAIRMETA-387: [REF] small refactoring based on PR comments

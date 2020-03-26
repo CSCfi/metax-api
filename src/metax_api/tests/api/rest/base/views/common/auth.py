@@ -75,12 +75,20 @@ class ApiServiceAccessAuthorization(CatalogRecordApiWriteCommon):
         response = self.client.delete('/rest/files/1')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_read_for_world_ok(self):
+    def test_read_for_datasets_world_ok(self):
         """
         Reading datasets api should be permitted even without any authorization.
         """
         self.client._credentials = {}
         response = self.client.get('/rest/datasets/1')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_read_for_datacatalogs_world_ok(self):
+        """
+        Reading datacatalogs api should be permitted even without any authorization.
+        """
+        self.client._credentials = {}
+        response = self.client.get('/rest/datacatalogs/1')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 

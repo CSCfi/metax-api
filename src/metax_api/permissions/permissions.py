@@ -143,13 +143,9 @@ class MetaxAPIPermissions(BasePermission):
         return has_perm
 
     def has_object_permission(self, request, view, obj):
-        has_perm = False
-        if 'all' in self.perms['rest'][view.get_api_name()].get(METHOD_MAP[request.method], []):
-            has_perm = True
-        else:
-            has_perm = obj.user_has_access(request)
-            if not has_perm:
-                self.message = 'You are not permitted to access this resource.'
+        has_perm = obj.user_has_access(request)
+        if not has_perm:
+            self.message = 'You are not permitted to access this resource.'
         return has_perm
 
 

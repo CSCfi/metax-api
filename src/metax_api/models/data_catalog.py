@@ -60,3 +60,12 @@ class DataCatalog(Common):
             self.catalog_json['research_dataset_schema'],
             self.catalog_json['dataset_versioning'],
         )
+
+    def user_has_access(self, request):
+        """
+        Overriding inherited operation to check permissions for datacatalogs
+        """
+
+        if request.method == 'GET' or request.user.is_service:
+            return True
+        return False

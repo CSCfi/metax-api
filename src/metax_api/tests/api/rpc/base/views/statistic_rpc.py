@@ -706,7 +706,7 @@ class StatisticRPCforDrafts(StatisticRPCCommon, CatalogRecordApiWriteCommon):
         response_1 = self.client.get('/rpc/statistics/count_datasets').data
 
         self._set_dataset_as_draft(1)
-        self.assertEqual(CatalogRecord.objects.get(pk=1).state, 'draft', 
+        self.assertEqual(CatalogRecord.objects.get(pk=1).state, 'draft',
             'Dataset with id=1 should have changed state to draft')
 
         response_2 = self.client.get('/rpc/statistics/count_datasets').data

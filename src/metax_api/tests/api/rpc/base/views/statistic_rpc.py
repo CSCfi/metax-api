@@ -706,11 +706,12 @@ class StatisticRPCforDrafts(StatisticRPCCommon, CatalogRecordApiWriteCommon):
         response_1 = self.client.get('/rpc/statistics/count_datasets').data
 
         self._set_dataset_as_draft(1)
-        self.assertEqual(CatalogRecord.objects.get(pk=1).state, 'draft', CatalogRecord.objects.get(pk=1).id)
+        self.assertEqual(CatalogRecord.objects.get(pk=1).state, 'draft', 
+            'Dataset with id=1 should have changed state to draft')
 
         response_2 = self.client.get('/rpc/statistics/count_datasets').data
         self.assertNotEqual(response_1['count'], response_2['count'],
-        'Drafts should not be returned in count_datasets api')
+            'Drafts should not be returned in count_datasets api')
 
     def test_all_datasets_cumulative_for_drafts(self):
         """
@@ -719,16 +720,16 @@ class StatisticRPCforDrafts(StatisticRPCCommon, CatalogRecordApiWriteCommon):
         url = '/rpc/statistics/all_datasets_cumulative?from_date=2019-06&to_date=2019-06'
 
         self._set_dataset_creation_date(1, '2019-06-15')
-        response_1 = self.client.get(f'{url}').data
+        response_1 = self.client.get(url).data
 
         self._set_dataset_as_draft(1)
-        response_2 = self.client.get(f'{url}').data
+        response_2 = self.client.get(url).data
 
         # ensure the counts and byte sizes are calculated without drafts
         self.assertNotEqual(response_1[0]['count'], response_2[0]['count'],
-        'Count for June should reduce by one as dataset id=1 was set as draft')
+            'Count for June should reduce by one as dataset id=1 was set as draft')
         self.assertNotEqual(response_1[0]['ida_byte_size'], response_2[0]['ida_byte_size'],
-        'Byte size for June should reduce by one as dataset id=1 was set as draft')
+            'Byte size for June should reduce by one as dataset id=1 was set as draft')
 
     def test_catalog_datasets_cumulative_for_drafts(self):
         """
@@ -741,13 +742,13 @@ class StatisticRPCforDrafts(StatisticRPCCommon, CatalogRecordApiWriteCommon):
         self._set_dataset_creation_date(1, '2019-06-15')
         self._set_cr_datacatalog(1, catalog) # Adds id=1 to catalog
 
-        count_1 = self.client.get(f'{url}').data[catalog]['open'][0]['count']
-        total_1 = self.client.get(f'{url}').data[catalog]['total']
+        count_1 = self.client.get(url).data[catalog]['open'][0]['count']
+        total_1 = self.client.get(url).data[catalog]['total']
 
         self._set_dataset_as_draft(1)
 
-        count_2 = self.client.get(f'{url}').data[catalog]['open'][0]['count']
-        total_2 = self.client.get(f'{url}').data[catalog]['total']
+        count_2 = self.client.get(url).data[catalog]['open'][0]['count']
+        total_2 = self.client.get(url).data[catalog]['total']
 
         # ensure the count and total are calculated without drafts
         self.assertNotEqual(count_1, count_2, 'Count should reduce by one as dataset id=1 was set as draft')
@@ -758,10 +759,10 @@ class StatisticRPCforDrafts(StatisticRPCCommon, CatalogRecordApiWriteCommon):
         url = '/rpc/statistics/end_user_datasets_cumulative?from_date=2019-06-01&to_date=2019-06-30'
 
         self._set_dataset_creation_date(10, '2019-06-15')
-        count_1 = self.client.get(f'{url}').data[0]['count']
+        count_1 = self.client.get(url).data[0]['count']
 
         self._set_dataset_as_draft(10)
-        count_2 = self.client.get(f'{url}').data[0]['count']
+        count_2 = self.client.get(url).data[0]['count']
 
         # ensure the count are calculated without drafts
         self.assertNotEqual(count_1, count_2, 'Count should be reduced by one after setting id=10 as draft')
@@ -772,10 +773,10 @@ class StatisticRPCforDrafts(StatisticRPCCommon, CatalogRecordApiWriteCommon):
 
         self._set_dataset_creation_date(1, '2019-06-15')
         self._set_cr_organization(1, 'org_2')
-        total_1 = self.client.get(f'{url}').data['org_2']['total']
+        total_1 = self.client.get(url).data['org_2']['total']
 
         self._set_dataset_as_draft(1)
-        total_2 = self.client.get(f'{url}').data['org_2']['total']
+        total_2 = self.client.get(url).data['org_2']['total']
 
         # ensure the totals are calculated without drafts
         self.assertNotEqual(total_1, total_2, 'Count be reduced by one after setting id=1 as draft')

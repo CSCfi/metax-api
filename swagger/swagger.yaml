@@ -568,6 +568,11 @@ paths:
           description: Identifier of a catalog record. Browse only files that have been selected for that record.
           required: false
           type: string
+        - name: not_cr_identifier
+          in: query
+          description: Identifier of a catalog record. Browse only files that have not been selected for that record.
+          required: false
+          type: string
         - name: file_fields
           in: query
           description: Comma-separated list of field names to retrieve for files

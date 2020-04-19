@@ -749,6 +749,7 @@ class FileService(CommonService, ReferenceDataMixin):
                 dirs, files = cls._get_directory_contents_for_catalog_record(
                     directory_id,
                     cr_id,
+                    not_cr_id,
                     dirs_only=dirs_only,
                     directory_fields=directory_fields,
                     file_fields=file_fields)

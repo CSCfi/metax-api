@@ -285,12 +285,33 @@ class DirectoryApiReadCatalogRecordFileBrowsingTests(DirectoryApiReadCommon):
         self.assertEqual(len(response.data['directories']), 0)
         self.assertEqual(len(response.data['files']), 2)
 
+    def test_read_directory_for_not_catalog_record(self):
+        """
+        Test query parameter 'not_cr_identifier'.
+        """
+
+        # not_cr_files = File.objects.filter(parent_directory=3, removed=False, active=True) \
+        #   .exclude(record__pk=2).count()
+
+        response = self.client.get('/rest/directories/3/files?not_cr_identifier=2')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        self.assertEqual(len(response.data['files']), 3, response.data)
+        self.assertEqual(len(response.data['directories']), 1, response.data)
+
     def test_read_directory_for_catalog_record_not_found(self):
         """
         Not found cr_identifier should raise 400 instead of 404, which is raised when the
         directory itself is not found. the error contains details about the 400.
         """
         response = self.client.get('/rest/directories/3/files?cr_identifier=notexisting')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_read_directory_for_catalog_not_record_not_found(self):
+        """
+        Not found cr_identifier should raise 400 instead of 404, which is raised when the
+        directory itself is not found. the error contains details about the 400.
+        """
+        response = self.client.get('/rest/directories/3/files?not_cr_identifier=notexisting')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_read_directory_for_catalog_record_directory_does_not_exist(self):
@@ -307,6 +328,11 @@ class DirectoryApiReadCatalogRecordFileBrowsingTests(DirectoryApiReadCommon):
         response = self.client.get('/rest/directories/4/files?cr_identifier=%s'
             % CatalogRecord.objects.get(pk=1).identifier)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        # ... and should contain files ALL BUT THIS CR
+        response = self.client.get('/rest/directories/4/files?not_cr_identifier=%s'
+            % CatalogRecord.objects.get(pk=1).identifier)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_read_directory_for_catalog_record_recursively(self):
         """
@@ -564,7 +590,7 @@ class DirectoryApiReadEndUserAccess(DirectoryApiReadCommon):
 
         # first read files without project access - should fail
         response = self.client.get('/rest/directories/1')
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.data)
         response = self.client.get('/rest/directories/1/files')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.data)
 
@@ -572,9 +598,9 @@ class DirectoryApiReadEndUserAccess(DirectoryApiReadCommon):
         self._update_token_with_project_of_directory(1)
 
         response = self.client.get('/rest/directories/1')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
         response = self.client.get('/rest/directories/1/files')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
 
     @responses.activate
     def test_browsing_by_project_and_file_path_is_protected(self):
@@ -583,13 +609,12 @@ class DirectoryApiReadEndUserAccess(DirectoryApiReadCommon):
         dr = Directory.objects.get(pk=2)
         response = self.client.get('/rest/directories/files?path=%s&project=%s' %
             (dr.directory_path, dr.project_identifier))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.data)
 
         self._update_token_with_project_of_directory(2)
-
         response = self.client.get('/rest/directories/files?path=%s&project=%s' %
             (dr.directory_path, dr.project_identifier))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
 
     @responses.activate
     def test_browsing_in_cr_context(self):
@@ -599,8 +624,8 @@ class DirectoryApiReadEndUserAccess(DirectoryApiReadCommon):
         '''
         cr_pk = CatalogRecord.objects.get(pk=1).identifier
         self._use_http_authorization(method='bearer', token=self.token)
-        response = self.client.get('/rest/directories/3/files?cr_identifier=%s' % cr_pk)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.get('/rest/directories/3/files?cr_identifier={0}'.format(cr_pk))
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
 
         self._set_http_authorization('service')
         response = self.client.get('/rest/datasets/{0}'.format(cr_pk))
@@ -611,6 +636,26 @@ class DirectoryApiReadEndUserAccess(DirectoryApiReadCommon):
         self._use_http_authorization(method='bearer', token=self.token)
         response = self.client.get('/rest/directories/3/files?cr_identifier=%s' % cr_pk)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    @responses.activate
+    def test_browsing_in_not_cr_context(self):
+        '''
+        Cr with open access type should be available for any end-user api user. Browsing files for a cr with restricted
+        access type should be forbidden for non-owner (or service) user.
+        '''
+        self._use_http_authorization(method='bearer', token=self.token)
+        response = self.client.get('/rest/directories/3/files?not_cr_identifier=1')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+
+        self._set_http_authorization('service')
+        response = self.client.get('/rest/datasets/1')
+        json = response.data
+        json['research_dataset']['access_rights']['access_type']['identifier'] = ACCESS_TYPES['restricted']
+        response = self.client.put('/rest/datasets/1', response.data, format='json')
+
+        self._use_http_authorization(method='bearer', token=self.token)
+        response = self.client.get('/rest/directories/3/files?not_cr_identifier=1')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.data)
 
 
 class DirectoryApiReadPaginationTests(DirectoryApiReadCommon):

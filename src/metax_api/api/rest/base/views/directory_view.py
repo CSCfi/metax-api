@@ -79,6 +79,10 @@ class DirectoryViewSet(CommonViewSet):
         cr_identifier = request.query_params.get('cr_identifier', None)
         not_cr_identifier = request.query_params.get('not_cr_identifier', None)
 
+        if cr_identifier and not_cr_identifier:
+            raise Http400({ 'detail':
+                ["there can only be one query parameter of 'cr_identifier' and 'not_cr_identifier'"] })
+
         files_and_dirs = FileService.get_directory_contents(
             identifier=identifier,
             path=request.query_params.get('path', None),

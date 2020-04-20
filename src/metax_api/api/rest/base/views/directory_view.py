@@ -65,6 +65,8 @@ class DirectoryViewSet(CommonViewSet):
         recursive = CommonService.get_boolean_query_param(request, 'recursive')
         max_depth = request.query_params.get('depth', 1)
         project_identifier = request.query_params.get('project', None)
+        cr_identifier = request.query_params.get('cr_identifier', None)
+        not_cr_identifier = request.query_params.get('not_cr_identifier', None)
 
         # max_depth can be an integer > 0, or * for everything.
         try:
@@ -75,9 +77,6 @@ class DirectoryViewSet(CommonViewSet):
         else:
             if max_depth <= 0:
                 raise Http400({ 'detail': ['value of depth must be higher than 0'] })
-
-        cr_identifier = request.query_params.get('cr_identifier', None)
-        not_cr_identifier = request.query_params.get('not_cr_identifier', None)
 
         if cr_identifier and not_cr_identifier:
             raise Http400({ 'detail':

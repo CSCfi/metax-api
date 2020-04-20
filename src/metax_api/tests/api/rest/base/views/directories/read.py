@@ -273,6 +273,14 @@ class DirectoryApiReadCatalogRecordFileBrowsingTests(DirectoryApiReadCommon):
     that contained suchs files, or would contain such files further down the tree.
     """
 
+    def test_read_directory_catalog_record_and_not_catalog_record_not_ok(self):
+        """
+        Test query parameter 'cr_identifier' and 'not_cr_identifier' can not be queried together.
+        """
+        response = self.client.get('/rest/directories/3/files?cr_identifier=1&not_cr_identifier=2')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue("one query parameter of 'cr_identifier' and 'not_cr_identifier'" in response.data['detail'][0])
+
     def test_read_directory_for_catalog_record(self):
         """
         Test query parameter 'cr_identifier'.

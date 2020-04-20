@@ -574,7 +574,7 @@ paths:
           in: query
           description: |
             Identifier of a catalog record. Browse only files that have not been selected for that record.
-            This parameter is incompatible with `cr_identifier` and `recursive` parameters.
+            This parameter is incompatible with `cr_identifier` parameter.
           required: false
           type: string
         - name: file_fields

@@ -284,19 +284,20 @@ class DirectoryApiReadCatalogRecordFileBrowsingTests(DirectoryApiReadCommon):
         self.assertEqual('files' in response.data, True)
         self.assertEqual(len(response.data['directories']), 0)
         self.assertEqual(len(response.data['files']), 2)
+        for f in response.data['files']:
+            self.assertTrue(f['parent_directory']['id'], 1)
 
     def test_read_directory_for_not_catalog_record(self):
         """
         Test query parameter 'not_cr_identifier'.
         """
-
-        # not_cr_files = File.objects.filter(parent_directory=3, removed=False, active=True) \
-        #   .exclude(record__pk=2).count()
-
         response = self.client.get('/rest/directories/3/files?not_cr_identifier=2')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
         self.assertEqual(len(response.data['files']), 3, response.data)
+        for f in response.data['files']:
+            self.assertNotEqual(f['parent_directory']['id'], 2)
         self.assertEqual(len(response.data['directories']), 1, response.data)
+        self.assertNotEqual(response.data['directories'][0]['parent_directory']['id'], 2)
 
     def test_read_directory_for_catalog_record_not_found(self):
         """
@@ -306,7 +307,7 @@ class DirectoryApiReadCatalogRecordFileBrowsingTests(DirectoryApiReadCommon):
         response = self.client.get('/rest/directories/3/files?cr_identifier=notexisting')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_read_directory_for_catalog_not_record_not_found(self):
+    def test_read_directory_for_not_catalog_record_not_found(self):
         """
         Not found cr_identifier should raise 400 instead of 404, which is raised when the
         directory itself is not found. the error contains details about the 400.
@@ -323,6 +324,8 @@ class DirectoryApiReadCatalogRecordFileBrowsingTests(DirectoryApiReadCommon):
         # should be OK...
         response = self.client.get('/rest/directories/4/files')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['directories']), 1)
+        self.assertEqual(len(response.data['files']), 5)
 
         # ... but should not contain any files FOR THIS CR
         response = self.client.get('/rest/directories/4/files?cr_identifier=%s'
@@ -333,19 +336,39 @@ class DirectoryApiReadCatalogRecordFileBrowsingTests(DirectoryApiReadCommon):
         response = self.client.get('/rest/directories/4/files?not_cr_identifier=%s'
             % CatalogRecord.objects.get(pk=1).identifier)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['directories']), 1)
+        self.assertEqual(len(response.data['files']), 5)
 
     def test_read_directory_for_catalog_record_recursively(self):
         """
-        Test query parameter 'cr_identifier' with 'recursive'.
+        Test query parameters 'cr_identifier' with 'recursive'.
         """
         response = self.client.get('/rest/directories/1/files?recursive&cr_identifier=%s&depth=*'
             % CatalogRecord.objects.get(pk=1).identifier)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
+        for f in response.data:
+            self.assertTrue(f['parent_directory']['id'], CatalogRecord.objects.get(pk=1).identifier)
 
         # not found cr_identifier should raise 400 instead of 404, which is raised when the
         # directory itself is not found. the error contains details about the 400
         response = self.client.get('/rest/directories/1/files?recursive&cr_identifier=notexisting')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_read_directory_for_not_catalog_record_recursively(self):
+        """
+        Test query parameters 'not_cr_identifier' with 'recursive'.
+        """
+        response = self.client.get('/rest/directories/1/files?recursive&not_cr_identifier=%s&depth=*'
+            % CatalogRecord.objects.get(pk=1).identifier)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 18)
+        for f in response.data:
+            self.assertNotEqual(f['parent_directory']['id'], CatalogRecord.objects.get(pk=1).id)
+
+        # not found not_cr_identifier should raise 400 instead of 404, which is raised when the
+        # directory itself is not found. the error contains details about the 400
+        response = self.client.get('/rest/directories/1/files?recursive&not_cr_identifier=notexisting')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_directory_byte_size_and_file_count(self):
@@ -505,6 +528,9 @@ class DirectoryApiReadCatalogRecordFileBrowsingAuthorizationTests(DirectoryApiRe
         response = self.client.get('/rest/directories/{0}/files?cr_identifier={1}'.format(dir_id, cr_id))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+        response = self.client.get('/rest/directories/{0}/files?not_cr_identifier={1}'.format(dir_id, cr_id))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
     def _assert_ok(self, cr_json, credentials_type):
         dir_file_amt = cr_json['research_dataset']['directories'][0]['details']['file_count']
         dir_id = cr_json['research_dataset']['directories'][0]['identifier']
@@ -515,6 +541,10 @@ class DirectoryApiReadCatalogRecordFileBrowsingAuthorizationTests(DirectoryApiRe
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), dir_file_amt)
 
+        response = self.client.get('/rest/directories/{0}/files?not_cr_identifier={1}&recursive&depth=*'
+                                   .format(dir_id, cr_id))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 0)
 
 class DirectoryApiReadCatalogRecordFileBrowsingRetrieveSpecificFieldsTests(DirectoryApiReadCommon):
 

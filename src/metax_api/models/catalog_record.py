@@ -1300,7 +1300,11 @@ class CatalogRecord(Common):
 
             if actual_files_changed:
 
-                if self.preservation_state > self.PRESERVATION_STATE_INITIALIZED: # state > 0
+                if self.state == self.STATE_DRAFT and settings.DRAFT_ENABLED:
+                    # do nothing
+                    pass
+
+                elif self.preservation_state > self.PRESERVATION_STATE_INITIALIZED: # state > 0
                     raise Http400({ 'detail': [
                         'Changing files is not allowed when dataset is in PAS process. Current '
                         'preservation_state = %d. In order to alter associated files, change preservation_state '
@@ -1327,7 +1331,11 @@ class CatalogRecord(Common):
                     self._create_new_dataset_version()
 
             else:
-                self._handle_metadata_versioning()
+                if self.state == self.STATE_DRAFT and settings.DRAFT_ENABLED:
+                    # do nothing
+                    pass
+                else:
+                    self._handle_metadata_versioning()
 
         else:
             # non-versioning catalogs, such as harvesters, or if an update
@@ -1351,26 +1359,31 @@ class CatalogRecord(Common):
                 self._handle_preferred_identifier_changed()
 
     def _post_update_operations(self):
-        if get_identifier_type(self.preferred_identifier) == IdentifierType.DOI and \
-                self.update_datacite:
-            self._validate_cr_against_datacite_schema()
-            self.add_post_request_callable(DataciteDOIUpdate(self, self.research_dataset['preferred_identifier'],
-                                                             'update'))
+        if self.state == self.STATE_DRAFT and settings.DRAFT_ENABLED:
+            # do nothing
+            pass
 
-        self.add_post_request_callable(RabbitMQPublishRecord(self, 'update'))
+        else:
+            if get_identifier_type(self.preferred_identifier) == IdentifierType.DOI and \
+                    self.update_datacite:
+                self._validate_cr_against_datacite_schema()
+                self.add_post_request_callable(DataciteDOIUpdate(self, self.research_dataset['preferred_identifier'],
+                                                                'update'))
 
-        log_args = {
-            'event': 'dataset_updated',
-            'user_id': self.user_modified or self.service_modified,
-            'catalogrecord': {
-                'identifier': self.identifier,
-                'preferred_identifier': self.preferred_identifier,
-                'data_catalog': self.data_catalog.catalog_json['identifier'],
-                'date_modified': datetime_to_str(self.date_modified),
-            },
-        }
+            self.add_post_request_callable(RabbitMQPublishRecord(self, 'update'))
 
-        self.add_post_request_callable(DelayedLog(**log_args))
+            log_args = {
+                'event': 'dataset_updated',
+                'user_id': self.user_modified or self.service_modified,
+                'catalogrecord': {
+                    'identifier': self.identifier,
+                    'preferred_identifier': self.preferred_identifier,
+                    'data_catalog': self.data_catalog.catalog_json['identifier'],
+                    'date_modified': datetime_to_str(self.date_modified),
+                },
+            }
+
+            self.add_post_request_callable(DelayedLog(**log_args))
 
     def _validate_cr_against_datacite_schema(self):
         from metax_api.services.datacite_service import DataciteService, DataciteException, \

@@ -272,6 +272,23 @@ class CatalogRecordDraftTests(CatalogRecordApiWriteCommon):
         self.assertEqual('draft' not in states, True, response.data)
 
     ###
+    # Tests for draft dataset editing
+    ###
+
+    def test_new_version_is_not_created_when_updating_drafts(self):
+        ''' When dataset is in "draft" state, any update operation (PUT, PATCH)
+        to /rest/datasets/id should not create a new version. '''
+
+        for http_verb in ['put', 'patch']:
+            update_request = getattr(self.client, http_verb)
+            cr = self.client.get('/rest/datasets/2').data
+            cr['research_dataset']['files'].pop(0)
+            response = update_request('/rest/datasets/2', cr, format="json")
+            self.assertEqual(len(response.data['dataset_version_set']), 1, response.data)
+            self.assertEqual('new_version_created' not in response.data, True, response.data)
+            self.assertEqual('next_dataset_version' not in response.data, True, response.data)
+
+    ###
     # Tests for different user roles access to update drafts
     ###
 

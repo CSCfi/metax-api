@@ -1406,10 +1406,8 @@ class CatalogRecordApiWritePreservationStateTests(CatalogRecordApiWriteCommon):
         been frozen in between.
         """
         test_file = self._get_object_from_test_data('file', requested_index=0)
-
         response = self.client.get(
             '/rest/directories/files?project=%s&path=/' % test_file['project_identifier'], format="json")
-
         dir_identifier = response.data['directories'][0]['identifier']
 
         # create dataset where directory along with all of its files are included

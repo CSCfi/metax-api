@@ -517,9 +517,9 @@ class FileService(CommonService, ReferenceDataMixin):
             CallableService.add_post_request_callable(RabbitMQPublishRecord(cr, 'update'))
 
     @classmethod
-    def get_directory_contents(cls, identifier=None, path=None, project_identifier=None,
-            recursive=False, max_depth=1, dirs_only=False, include_parent=False, cr_identifier=None,
-            not_cr_identifier=None, file_name=None, directory_name=None, request=None):
+    def get_directory_contents(cls, identifier=None, path=None, project_identifier=None, recursive=False,
+            max_depth=1, dirs_only=False, include_parent=False, cr_identifier=None, not_cr_identifier=None,
+            file_name=None, directory_name=None, request=None):
         """
         Get files and directories contained by a directory.
 
@@ -559,7 +559,13 @@ class FileService(CommonService, ReferenceDataMixin):
         directory_name: substring search from directory names. Only matching directories are returned.
         Can be used with file_name.
 
-        request: the web request object.
+        file_name: substring search from file names. Only matching files are returned.
+        Can be used with directory_name.
+
+        directory_name: substring search from directory names. Only matching directories are returned.
+        Can be used with file_name.
+
+
         """
         assert request is not None, 'kw parameter request must be specified'
         from metax_api.api.rest.base.serializers import LightDirectorySerializer
@@ -745,6 +751,11 @@ class FileService(CommonService, ReferenceDataMixin):
         If directory_fields and/or file_fields are specified, then only specified fields are retrieved
         for directories and files respectively.
         """
+        if not directory_name:
+            directory_name = ''
+        if not file_name:
+            file_name = ''
+
         if recursive and max_depth != '*':
             if depth > max_depth:
                 raise MaxRecursionDepthExceeded('max depth is %d' % max_depth)
@@ -813,7 +824,6 @@ class FileService(CommonService, ReferenceDataMixin):
                 directory['directories'] = sub_dir_contents['directories']
                 if 'files' in sub_dir_contents:
                     directory['files'] = sub_dir_contents['files']
-
         return contents
 
     @classmethod

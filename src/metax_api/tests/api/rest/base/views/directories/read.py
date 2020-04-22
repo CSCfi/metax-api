@@ -196,7 +196,7 @@ class DirectoryApiReadFileBrowsingTests(DirectoryApiReadCommon):
         dr = Directory.objects.get(pk=2)
         response = self.client.get('/rest/directories/files?path=%s&project=%s' %
             (dr.directory_path, dr.project_identifier))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
         self.assertEqual(len(response.data['directories']), 1)
         self.assertEqual(response.data['directories'][0]['id'], 3)
         self.assertEqual(response.data['directories'][0]['parent_directory']['id'], 2)
@@ -1064,7 +1064,7 @@ class DirectoryApiReadFileNameDirectoryNameTests(DirectoryApiReadCommon):
     def test_browsing_directory_with_directory_and_file_name_and_dirs_only(self):
 
         response = self.client.get('/rest/directories/24/files?file_name=_name_11&directories_only')
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['directories']), 5)
         self.assertEqual(response.data.get('files'), None)
 

@@ -631,33 +631,32 @@ class FileService(CommonService, ReferenceDataMixin):
 
     @classmethod
     def _get_cr_if_relevant(cls, cr_identifier, directory, request):
-        if cr_identifier:
-            # browsing in the context of a cr
-            try:
-                cr_params = { 'id': int(cr_identifier) }
-            except ValueError:
-                cr_params = { 'identifier': cr_identifier }
+        # browsing in the context of a cr
+        try:
+            cr_params = { 'id': int(cr_identifier) }
+        except ValueError:
+            cr_params = { 'identifier': cr_identifier }
 
-            try:
-                cr = CatalogRecord.objects.only('id', '_directory_data', 'editor', 'user_created', 'research_dataset').\
-                    get(**cr_params)
-            except CatalogRecord.DoesNotExist:
-                # raise 400 instead of 404, to distinguish from the error
-                # 'directory not found', which raises a 404
-                raise ValidationError({
-                    'detail': [ 'CatalogRecord with identifier %s does not exist' % cr_identifier ]
-                })
+        try:
+            cr = CatalogRecord.objects.only('id', '_directory_data', 'editor', 'user_created', 'research_dataset').\
+                get(**cr_params)
+        except CatalogRecord.DoesNotExist:
+            # raise 400 instead of 404, to distinguish from the error
+            # 'directory not found', which raises a 404
+            raise ValidationError({
+                'detail': [ 'CatalogRecord with identifier %s does not exist' % cr_identifier ]
+            })
 
-            if not cr.authorized_to_see_catalog_record_files(request):
-                raise Http403({
-                    'detail': [
-                        'You do not have permission to see this information because the dataset access type is '
-                        'not open and you are not the owner of the catalog record.'
-                    ]
-                })
+        if not cr.authorized_to_see_catalog_record_files(request):
+            raise Http403({
+                'detail': [
+                    'You do not have permission to see this information because the dataset access type is '
+                    'not open and you are not the owner of the catalog record.'
+                ]
+            })
 
-            cr_id = cr.id
-            cr_directory_data = cr._directory_data or {}
+        cr_id = cr.id
+        cr_directory_data = cr._directory_data or {}
 
         return (cr_id, cr_directory_data)
 
@@ -812,43 +811,44 @@ class FileService(CommonService, ReferenceDataMixin):
         # dirs which otherwise contained files, but not any files that were selected for
         # the cr, are not returned.
 
+        directory_fields_string = ', '.join([field.replace('parent_directory__', 'parent_d.')
+            if 'parent_directory__' in field else 'd.' + field for field in directory_fields])
+
         sql_select_dirs_for_cr = """
-            select d.id
-            from metax_api_directory d
-            where d.parent_directory_id = {}
-            and exists(
-                select 1
-                from metax_api_file f
-                inner join metax_api_catalogrecord_files cr_f on cr_f.file_id = f.id
-                where f.file_path like (d.directory_path || '/%%')
-                and cr_f.catalogrecord_id {} {}
-                and f.removed = false
-                and f.active = true
+            SELECT {}
+            FROM metax_api_directory d
+            JOIN metax_api_directory parent_d
+                ON d.parent_directory_id = parent_d.id
+            WHERE d.parent_directory_id = {}
+            AND EXISTS(
+                SELECT 1
+                FROM metax_api_file f
+                INNER JOIN metax_api_catalogrecord_files cr_f ON cr_f.file_id = f.id
+                WHERE f.file_path LIKE (d.directory_path || '/%%')
+                AND cr_f.catalogrecord_id {} {}
+                AND f.removed = false
+                AND f.active = true
             )
             """
 
         with connection.cursor() as cr:
-            if dirs_only:
-                files = []
-            else:
-                if cr_id:
-                    cr.execute(sql_select_dirs_for_cr.format(directory_id, '=', cr_id))
-                    files = None if dirs_only else File.objects \
-                        .filter(record__pk=cr_id, parent_directory=directory_id, removed=False, active=True) \
-                        .values(*file_fields)
-                if not_cr_id:
-                    cr.execute(sql_select_dirs_for_cr.format(directory_id, '!=', not_cr_id))
-                    files = None if dirs_only else File.objects.exclude(record__pk=not_cr_id) \
-                        .filter(parent_directory=directory_id, removed=False, active=True) \
-                        .values(*file_fields)
-            directory_ids = [ row[0] for row in cr.fetchall() ]
+            if cr_id:
+                cr.execute(sql_select_dirs_for_cr.format(directory_fields_string, directory_id, '=', cr_id))
+                files = None if dirs_only else File.objects \
+                    .filter(record__pk=cr_id, parent_directory=directory_id, removed=False, active=True) \
+                    .values(*file_fields)
+            elif not_cr_id:
+                cr.execute(sql_select_dirs_for_cr.format(directory_fields_string, directory_id, '!=', not_cr_id))
+                files = None if dirs_only else File.objects.exclude(record__pk=not_cr_id) \
+                    .filter(parent_directory=directory_id, removed=False, active=True) \
+                    .values(*file_fields)
 
-        if not directory_ids and not files:
+            dirs = [dict(zip(directory_fields, row)) for row in cr.fetchall()]
+
+        if not dirs and not files:
             # for this specific version of the record, the requested directory either
             # didnt exist, or it was not selected
             raise Http404
-
-        dirs = Directory.objects.filter(id__in=directory_ids).values(*directory_fields)
 
         return dirs, files
 
@@ -860,6 +860,7 @@ class FileService(CommonService, ReferenceDataMixin):
         in the context of a specific catalog record.
         Note: Called recursively.
         """
+
         if not directory_fields:
             BYTE_SIZE = FILE_COUNT = True
         else:

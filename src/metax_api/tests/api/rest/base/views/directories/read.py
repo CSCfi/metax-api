@@ -12,7 +12,7 @@ from rest_framework.test import APITestCase
 import responses
 from django.db import transaction
 
-from metax_api.models import CatalogRecord, Directory
+from metax_api.models import CatalogRecord, Directory, File
 from metax_api.models.catalog_record import ACCESS_TYPES
 from metax_api.tests.utils import get_test_oidc_token, test_data_file_path, TestClassUtils
 
@@ -354,9 +354,10 @@ class DirectoryApiReadCatalogRecordFileBrowsingTests(DirectoryApiReadCommon):
         response = self.client.get('/rest/directories/1/files?recursive&cr_identifier=%s&depth=*'
             % CatalogRecord.objects.get(pk=1).identifier)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
+        cr_list = list(File.objects.filter(record__pk=1).values_list('id', flat=True))
+        self.assertEqual(len(response.data), len(cr_list))
         for f in response.data:
-            self.assertTrue(f['parent_directory']['id'], CatalogRecord.objects.get(pk=1).identifier)
+            self.assertTrue(f['id'] in cr_list)
 
         # not found cr_identifier should raise 400 instead of 404, which is raised when the
         # directory itself is not found. the error contains details about the 400
@@ -367,12 +368,14 @@ class DirectoryApiReadCatalogRecordFileBrowsingTests(DirectoryApiReadCommon):
         """
         Test query parameters 'not_cr_identifier' with 'recursive'.
         """
-        response = self.client.get('/rest/directories/1/files?recursive&not_cr_identifier=%s&depth=*'
+        cr_recursive = self.client.get('/rest/directories/1/files?recursive&depth=*').data
+        not_cr_list = list(File.objects.filter(record__pk=1).values_list('id', flat=True))
+        response = self.client.get('/rest/directories/1/files?recursive&depth=*&not_cr_identifier=%s'
             % CatalogRecord.objects.get(pk=1).identifier)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 18)
+        self.assertEqual(len(response.data), len(cr_recursive) - len(not_cr_list))
         for f in response.data:
-            self.assertNotEqual(f['parent_directory']['id'], CatalogRecord.objects.get(pk=1).id)
+            self.assertTrue(f['id'] not in not_cr_list)
 
         # not found not_cr_identifier should raise 400 instead of 404, which is raised when the
         # directory itself is not found. the error contains details about the 400
@@ -551,7 +554,7 @@ class DirectoryApiReadCatalogRecordFileBrowsingAuthorizationTests(DirectoryApiRe
 
         response = self.client.get('/rest/directories/{0}/files?not_cr_identifier={1}&recursive&depth=*'
                                    .format(dir_id, cr_id))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
         self.assertEqual(len(response.data), 0)
 
 class DirectoryApiReadCatalogRecordFileBrowsingRetrieveSpecificFieldsTests(DirectoryApiReadCommon):
@@ -660,19 +663,17 @@ class DirectoryApiReadEndUserAccess(DirectoryApiReadCommon):
         Cr with open access type should be available for any end-user api user. Browsing files for a cr with restricted
         access type should be forbidden for non-owner (or service) user.
         '''
-        cr_pk = CatalogRecord.objects.get(pk=1).identifier
+        cr = CatalogRecord.objects.get(pk=1)
         self._use_http_authorization(method='bearer', token=self.token)
-        response = self.client.get('/rest/directories/3/files?cr_identifier={0}'.format(cr_pk))
+        response = self.client.get('/rest/directories/3/files?cr_identifier={0}'.format(cr.identifier))
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
 
         self._set_http_authorization('service')
-        response = self.client.get('/rest/datasets/{0}'.format(cr_pk))
-        json = response.data
-        json['research_dataset']['access_rights']['access_type']['identifier'] = ACCESS_TYPES['restricted']
-        response = self.client.put('/rest/datasets/{0}'.format(cr_pk), response.data, format='json')
+        cr.research_dataset['access_rights']['access_type']['identifier'] = ACCESS_TYPES['restricted']
+        cr.force_save()
 
         self._use_http_authorization(method='bearer', token=self.token)
-        response = self.client.get('/rest/directories/3/files?cr_identifier=%s' % cr_pk)
+        response = self.client.get('/rest/directories/3/files?cr_identifier={0}'.format(cr.identifier))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     @responses.activate
@@ -681,18 +682,17 @@ class DirectoryApiReadEndUserAccess(DirectoryApiReadCommon):
         Cr with open access type should be available for any end-user api user. Browsing files for a cr with restricted
         access type should be forbidden for non-owner (or service) user.
         '''
+        cr = CatalogRecord.objects.get(pk=1)
         self._use_http_authorization(method='bearer', token=self.token)
-        response = self.client.get('/rest/directories/3/files?not_cr_identifier=1')
+        response = self.client.get('/rest/directories/3/files?not_cr_identifier={0}'.format(cr.identifier))
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
 
         self._set_http_authorization('service')
-        response = self.client.get('/rest/datasets/1')
-        json = response.data
-        json['research_dataset']['access_rights']['access_type']['identifier'] = ACCESS_TYPES['restricted']
-        response = self.client.put('/rest/datasets/1', response.data, format='json')
+        cr.research_dataset['access_rights']['access_type']['identifier'] = ACCESS_TYPES['restricted']
+        cr.force_save()
 
         self._use_http_authorization(method='bearer', token=self.token)
-        response = self.client.get('/rest/directories/3/files?not_cr_identifier=1')
+        response = self.client.get('/rest/directories/3/files?not_cr_identifier={0}'.format(cr.identifier))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.data)
 
 

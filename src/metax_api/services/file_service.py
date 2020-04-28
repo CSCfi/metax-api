@@ -751,10 +751,6 @@ class FileService(CommonService, ReferenceDataMixin):
         If directory_fields and/or file_fields are specified, then only specified fields are retrieved
         for directories and files respectively.
         """
-        if not directory_name:
-            directory_name = ''
-        if not file_name:
-            file_name = ''
 
         if recursive and max_depth != '*':
             if depth > max_depth:

@@ -819,13 +819,13 @@ class FileService(CommonService, ReferenceDataMixin):
             FROM metax_api_directory d
             JOIN metax_api_directory parent_d
                 ON d.parent_directory_id = parent_d.id
-            WHERE d.parent_directory_id = {}
+            WHERE d.parent_directory_id = %s
             AND EXISTS(
                 SELECT 1
                 FROM metax_api_file f
                 INNER JOIN metax_api_catalogrecord_files cr_f ON cr_f.file_id = f.id
                 WHERE f.file_path LIKE (d.directory_path || '/%%')
-                AND cr_f.catalogrecord_id {} {}
+                AND cr_f.catalogrecord_id {} %s
                 AND f.removed = false
                 AND f.active = true
             )
@@ -833,15 +833,15 @@ class FileService(CommonService, ReferenceDataMixin):
 
         with connection.cursor() as cr:
             if cr_id:
-                cr.execute(sql_select_dirs_for_cr.format(directory_fields_string, directory_id, '=', cr_id))
+                sql_select_dirs_for_cr = sql_select_dirs_for_cr.format(directory_fields_string, '=')
+                cr.execute(sql_select_dirs_for_cr, [directory_id, cr_id])
                 files = None if dirs_only else File.objects \
-                    .filter(record__pk=cr_id, parent_directory=directory_id, removed=False, active=True) \
-                    .values(*file_fields)
+                    .filter(record__pk=cr_id, parent_directory=directory_id).values(*file_fields)
             elif not_cr_id:
-                cr.execute(sql_select_dirs_for_cr.format(directory_fields_string, directory_id, '!=', not_cr_id))
+                sql_select_dirs_for_cr = sql_select_dirs_for_cr.format(directory_fields_string, '!=')
+                cr.execute(sql_select_dirs_for_cr, [directory_id, not_cr_id])
                 files = None if dirs_only else File.objects.exclude(record__pk=not_cr_id) \
-                    .filter(parent_directory=directory_id, removed=False, active=True) \
-                    .values(*file_fields)
+                    .filter(parent_directory=directory_id).values(*file_fields)
 
             dirs = [dict(zip(directory_fields, row)) for row in cr.fetchall()]
 

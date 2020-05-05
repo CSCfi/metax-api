@@ -339,7 +339,7 @@ class LightSerializer():
         for field in relation_fields:
             _relation_id_fields.add('%s_id' % field)
 
-        if isinstance(unserialized_data, QuerySet) or isinstance(unserialized_data, list):
+        if isinstance(unserialized_data, (QuerySet, list)):
             unserialized_data = unserialized_data
             multi = True
         if isinstance(unserialized_data, dict):

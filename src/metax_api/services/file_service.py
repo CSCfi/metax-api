@@ -811,6 +811,8 @@ class FileService(CommonService, ReferenceDataMixin):
         # dirs which otherwise contained files, but not any files that were selected for
         # the cr, are not returned.
 
+        # directory_fields are validated in LightDirectorySerializer against allowed fields
+        # which is set(DirectorySerializer.Meta.fields). Should be safe to use in raw SQL.
         directory_fields_string = ', '.join([field.replace('parent_directory__', 'parent_d.')
             if 'parent_directory__' in field else 'd.' + field for field in directory_fields])
 
@@ -835,11 +837,13 @@ class FileService(CommonService, ReferenceDataMixin):
             if cr_id:
                 sql_select_dirs_for_cr = sql_select_dirs_for_cr.format(directory_fields_string, '=')
                 cr.execute(sql_select_dirs_for_cr, [directory_id, cr_id])
+
                 files = None if dirs_only else File.objects \
                     .filter(record__pk=cr_id, parent_directory=directory_id).values(*file_fields)
             elif not_cr_id:
                 sql_select_dirs_for_cr = sql_select_dirs_for_cr.format(directory_fields_string, '!=')
                 cr.execute(sql_select_dirs_for_cr, [directory_id, not_cr_id])
+
                 files = None if dirs_only else File.objects.exclude(record__pk=not_cr_id) \
                     .filter(parent_directory=directory_id).values(*file_fields)
 

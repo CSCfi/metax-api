@@ -812,9 +812,22 @@ class FileService(CommonService, ReferenceDataMixin):
         # the cr, are not returned.
 
         # directory_fields are validated in LightDirectorySerializer against allowed fields
-        # which is set(DirectorySerializer.Meta.fields). Should be safe to use in raw SQL.
-        directory_fields_string = ', '.join([field.replace('parent_directory__', 'parent_d.')
-            if 'parent_directory__' in field else 'd.' + field for field in directory_fields])
+        # which is set(DirectorySerializer.Meta.fields). Should be safe to use in raw SQL,
+        # but considered to be more safe to sanitize here once more.
+
+        from metax_api.api.rest.base.serializers import DirectorySerializer
+
+        allowed_fields = set(DirectorySerializer.Meta.fields)
+
+        directory_fields_sql = []
+
+        for field in directory_fields:
+            if field in allowed_fields:
+                directory_fields_sql.append('d.' + field)
+            elif 'parent_directory__' in field and field.split('parent_directory__')[1] in allowed_fields:
+                directory_fields_sql.append(field.replace('parent_directory__', 'parent_d.'))
+
+        directory_fields_string_sql = ', '.join(directory_fields_sql)
 
         sql_select_dirs_for_cr = """
             SELECT {}
@@ -835,13 +848,13 @@ class FileService(CommonService, ReferenceDataMixin):
 
         with connection.cursor() as cr:
             if cr_id:
-                sql_select_dirs_for_cr = sql_select_dirs_for_cr.format(directory_fields_string, '=')
+                sql_select_dirs_for_cr = sql_select_dirs_for_cr.format(directory_fields_string_sql, '=')
                 cr.execute(sql_select_dirs_for_cr, [directory_id, cr_id])
 
                 files = None if dirs_only else File.objects \
                     .filter(record__pk=cr_id, parent_directory=directory_id).values(*file_fields)
             elif not_cr_id:
-                sql_select_dirs_for_cr = sql_select_dirs_for_cr.format(directory_fields_string, '!=')
+                sql_select_dirs_for_cr = sql_select_dirs_for_cr.format(directory_fields_string_sql, '!=')
                 cr.execute(sql_select_dirs_for_cr, [directory_id, not_cr_id])
 
                 files = None if dirs_only else File.objects.exclude(record__pk=not_cr_id) \

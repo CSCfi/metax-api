@@ -264,6 +264,26 @@ class DirectoryApiReadFileBrowsingRetrieveSpecificFieldsTests(DirectoryApiReadCo
         self.assertEqual(len(response.data['directories'][0].keys()), 1)
         self.assertEqual('id' in response.data['directories'][0], True)
 
+    def test_not_retrieving_not_allowed_directory_fields(self):
+        from metax_api.api.rest.base.serializers import DirectorySerializer, FileSerializer
+
+        allowed_dir_fields = set(DirectorySerializer.Meta.fields)
+        allowed_file_fields = set(FileSerializer.Meta.fields)
+
+        response = self.client.get('/rest/directories/3/files?file_fields=parent,id&directory_fields=;;drop db;')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(any(field in response.data['files'][0].keys() for field in allowed_file_fields))
+        self.assertTrue(any(field in response.data['directories'][0].keys() for field in allowed_dir_fields))
+
+        response = self.client.get('/rest/directories/3/files?file_fields=parent&directory_fields=or')
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        response = self.client.get('/rest/directories/3/files?file_fields=parent')
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        response = self.client.get('/rest/directories/3/files?directory_fields=or')
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class DirectoryApiReadCatalogRecordFileBrowsingTests(DirectoryApiReadCommon):
 
@@ -303,7 +323,7 @@ class DirectoryApiReadCatalogRecordFileBrowsingTests(DirectoryApiReadCommon):
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
         self.assertEqual(len(response.data['files']), 3, response.data)
         for f in response.data['files']:
-            self.assertNotEqual(f['parent_directory']['id'], 2)
+            self.assertNotEqual(f['parent_directory']['id'], 2, response.data)
         self.assertEqual(len(response.data['directories']), 1, response.data)
         self.assertNotEqual(response.data['directories'][0]['parent_directory']['id'], 2)
 

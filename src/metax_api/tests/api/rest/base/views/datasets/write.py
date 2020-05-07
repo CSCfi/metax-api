@@ -407,6 +407,18 @@ class CatalogRecordApiWriteCreateTests(CatalogRecordApiWriteCommon):
     #
     #
 
+    def test_create_catalog_record_test(self):
+        cr_att_test_data = self._get_new_test_cr_data(cr_index=11, dc_index=0)
+        response = self.client.post('/rest/datasets', cr_att_test_data, format="json")
+        cr_id = response.data['id']
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+        response = self.client.get('/rest/directories/2/files?cr_identifier={}'.format(cr_id))
+        for k, v in response.data.items():
+            print(k)
+            for j in v:
+                filet = j.get('file_count', None)
+                print(j['id'], j['byte_size'], filet)
+
     def test_create_catalog_record(self):
         self.cr_test_data['research_dataset']['preferred_identifier'] = 'this_should_be_overwritten'
         response = self.client.post('/rest/datasets', self.cr_test_data, format="json")
@@ -2997,15 +3009,15 @@ class CatalogRecordApiWriteAssignFilesToDataset(CatalogRecordApiWriteAssignFiles
     except: Tests related to file updates/versioning are handled in the
     CatalogRecordApiWriteDatasetVersioning -suite.
     """
-
-    def test_adding_filesystem_root_dir_not_permitted(self):
-        """
-        The root dir of a filesystem ("/") should not be permitted to be added to a dataset.
-        """
-        self._add_directory(self.cr_test_data, '/', project='testproject')
-        self._add_directory(self.cr_test_data, '/TestExperiment/Directory_1/Group_2')
-        response = self.client.post('/rest/datasets', self.cr_test_data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, response.data)
+    # excluding this from test cases as new requirements do not demand this feature
+    # def test_adding_filesystem_root_dir_not_permitted(self):
+    #     """
+    #     The root dir of a filesystem ("/") should not be permitted to be added to a dataset.
+    #     """
+    #     self._add_directory(self.cr_test_data, '/', project='testproject')
+    #     self._add_directory(self.cr_test_data, '/TestExperiment/Directory_1/Group_2')
+    #     response = self.client.post('/rest/datasets', self.cr_test_data, format="json")
+    #     self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, response.data)
 
     def test_files_are_saved_during_create(self):
         """

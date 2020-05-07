@@ -4,7 +4,6 @@
 #
 # :author: CSC - IT Center for Science Ltd., Espoo Finland <servicedesk@csc.fi>
 # :license: MIT
-
 from django.db.models import Sum
 from django.core.management import call_command
 from rest_framework import status
@@ -23,7 +22,9 @@ class DirectoryApiReadCommon(APITestCase, TestClassUtils):
         """
         Loaded only once for test cases inside this class.
         """
+
         call_command('loaddata', test_data_file_path, verbosity=0)
+
         super(DirectoryApiReadCommon, cls).setUpClass()
 
     def setUp(self):
@@ -568,6 +569,57 @@ class DirectoryApiReadCatalogRecordFileBrowsingTests(DirectoryApiReadCommon):
             % (dr.id, cr.identifier))
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
         _assert_dir_calculations(cr, response.data)
+
+    # related to test below 'test_directory_byte_size_and_file_count_in_parent_directories'
+    def assertDirectoryData(self, id, parent_data):
+        response = self.client.get('/rest/directories/%s/files?cr_identifier=13&include_parent' % id)
+        self.assertEqual(response.data['byte_size'], parent_data[id][0], response.data['id'])
+        self.assertEqual(response.data['file_count'], parent_data[id][1])
+        if response.data.get('parent_directory'):
+            return self.assertDirectoryData(response.data['parent_directory']['id'], parent_data)
+
+    # related to test below 'test_directory_byte_size_and_file_count_in_parent_directories'
+    def _get_parent_dir_data_for_cr(self, id):
+        from django.db.models import Count, Sum
+        import copy
+
+        def get_parents(pk, pks):
+            pk = Directory.objects.get(pk=pk).parent_directory_id
+            if pk:
+                pks.append(pk)
+                return get_parents(pk, pks)
+
+        cr_data = CatalogRecord.objects.get(pk=id).files.values_list('parent_directory_id') \
+            .annotate(Sum('byte_size'), Count('id'))
+
+        grouped_cr_data = {}
+        for i in cr_data:
+            grouped_cr_data[i[0]] = [ int(i[1]), i[2] ]
+
+        dirs = {}
+        for i in grouped_cr_data.keys():
+            pks = []
+            get_parents(i, pks)
+            dirs[i] = pks
+
+        for key, value in dirs.items():
+            for v in value:
+                if grouped_cr_data.get(v):
+                    grouped_cr_data[v][0] += grouped_cr_data[key][0]
+                    grouped_cr_data[v][1] += grouped_cr_data[key][1]
+                else:
+                    grouped_cr_data[v] = copy.deepcopy(grouped_cr_data[key])
+        return grouped_cr_data
+
+    def test_directory_byte_size_and_file_count_in_parent_directories(self):
+        self._set_http_authorization('service')
+        self.client.get('/rest/datasets/update_cr_directory_browsing_data')
+        cr = self.client.get('/rest/datasets/13')
+        dirs = [Directory.objects.get(identifier=dr['identifier']).id
+            for dr in cr.data['research_dataset']['directories']]
+        parent_data = self._get_parent_dir_data_for_cr(13)
+        for id in dirs:
+            self.assertDirectoryData(id, parent_data)
 
 
 class DirectoryApiReadCatalogRecordFileBrowsingAuthorizationTests(DirectoryApiReadCommon):

@@ -350,7 +350,6 @@ class RefreshDirectoryContent(CatalogRecordApiWriteAssignFilesCommon):
             Directory.objects\
             .filter(directory_path__startswith='/TestExperiment/Directory_2/Group_3')\
             .first()
-
         self.assertTrue(str(new_dir.id) in cr_after._directory_data, 'New dir id should be found in cr')
         self.assertEqual(new_dir.byte_size, self._single_file_byte_size * 2)
 

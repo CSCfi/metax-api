@@ -277,13 +277,13 @@ class DirectoryApiReadFileBrowsingRetrieveSpecificFieldsTests(DirectoryApiReadCo
         self.assertTrue(any(field in response.data['directories'][0].keys() for field in allowed_dir_fields))
 
         response = self.client.get('/rest/directories/3/files?file_fields=parent&directory_fields=or')
-        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         response = self.client.get('/rest/directories/3/files?file_fields=parent')
-        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         response = self.client.get('/rest/directories/3/files?directory_fields=or')
-        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 class DirectoryApiReadCatalogRecordFileBrowsingTests(DirectoryApiReadCommon):
 

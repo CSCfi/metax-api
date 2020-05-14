@@ -15,6 +15,7 @@ from rest_framework.fields import SkipField
 from rest_framework.relations import PKOnlyObject
 from rest_framework.serializers import ModelSerializer
 from rest_framework.serializers import ValidationError
+from metax_api.exceptions import Http400
 
 from metax_api.models import Common
 
@@ -308,10 +309,9 @@ class LightSerializer():
             # fields to the db will cause crash.
             field_list = [ field for field in received_field_list if field in cls.allowed_fields ]
             if not field_list:
-                raise Exception(
-                    'uh oh, none of the fields you requested are listed in allowed_fields. '
-                    'received fields: %s' % str(received_field_list)
-                )
+                raise Http400({ 'detail': ['uh oh, none of the fields you requested are listed in allowed_fields. '
+                    'received fields: %s' % str(received_field_list)] })
+
         else:
             # get all fields
             field_list = cls.allowed_fields

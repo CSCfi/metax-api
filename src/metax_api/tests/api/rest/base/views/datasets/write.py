@@ -407,18 +407,6 @@ class CatalogRecordApiWriteCreateTests(CatalogRecordApiWriteCommon):
     #
     #
 
-    def test_create_catalog_record_test(self):
-        cr_att_test_data = self._get_new_test_cr_data(cr_index=11, dc_index=0)
-        response = self.client.post('/rest/datasets', cr_att_test_data, format="json")
-        cr_id = response.data['id']
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
-        response = self.client.get('/rest/directories/2/files?cr_identifier={}'.format(cr_id))
-        for k, v in response.data.items():
-            print(k)
-            for j in v:
-                filet = j.get('file_count', None)
-                print(j['id'], j['byte_size'], filet)
-
     def test_create_catalog_record(self):
         self.cr_test_data['research_dataset']['preferred_identifier'] = 'this_should_be_overwritten'
         response = self.client.post('/rest/datasets', self.cr_test_data, format="json")

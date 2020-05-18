@@ -885,6 +885,7 @@ class FileService(CommonService, ReferenceDataMixin):
 
                 files = None if dirs_only else File.objects \
                     .filter(record__pk=cr_id, parent_directory=directory_id).values(*file_fields)
+
             elif not_cr_id:
                 sql_select_dirs_for_cr = sql_select_dirs_for_cr.format(directory_fields_string_sql, dir_name_sql, '!=')
 

@@ -550,7 +550,7 @@ paths:
       parameters:
         - name: PID
           in: path
-          description: persistent ID of the directory OR the internal pk
+          description: Persistent ID of the directory OR the internal pk
           required: true
           type: string
         - name: recursive
@@ -1900,7 +1900,7 @@ paths:
   #       - $ref: "#/parameters/preservation_state_filter"
   #     responses:
   #       '200':
-  #         description: successful operation.
+  #         description: Successful operation.
   #         schema:
   #           $ref: "#/examples/count_datasets"
   #     tags:
@@ -1956,11 +1956,11 @@ paths:
   #       - $ref: "#/parameters/data_catalog_filter"
   #     responses:
   #       '200':
-  #         description: successful operation, return json of requested data catalogs.
+  #         description: Successful operation, return json of requested data catalogs.
   #         schema:
   #           $ref: "#/examples/catalog_datasets_cumulative"
   #       '400':
-  #         description: required parameters missing.
+  #         description: Required parameters missing.
   #     tags:
   #       - Statistics RPC
   # /rpc/v2/statistics/deprecated_datasets_cumulative:
@@ -1972,7 +1972,7 @@ paths:
   #       - $ref: "#/parameters/to_date"
   #     responses:
   #       '200':
-  #         description: successful operation.
+  #         description: Successful operation.
   #         schema:
   #           $ref: "#/examples/deprecated_datasets_cumulative"
   #     tags:
@@ -1986,11 +1986,11 @@ paths:
   #       - $ref: "#/parameters/to_date"
   #     responses:
   #       '200':
-  #         description: successful operation.
+  #         description: Successful operation.
   #         schema:
   #           $ref: "#/examples/end_user_datasets_cumulative"
   #       '400':
-  #         description: required parameters missing.
+  #         description: Required parameters missing.
   #     tags:
   #       - Statistics RPC
   # /rpc/v2/statistics/harvested_datasets_cumulative:
@@ -2002,11 +2002,11 @@ paths:
   #       - $ref: "#/parameters/to_date"
   #     responses:
   #       '200':
-  #         description: successful operation.
+  #         description: Successful operation.
   #         schema:
   #           $ref: "#/examples/harvested_datasets_cumulative"
   #       '400':
-  #         description: required parameters missing.
+  #         description: Required parameters missing.
   #     tags:
   #       - Statistics RPC
   /rpc/v2/statistics/organization_datasets_cumulative:
@@ -2032,7 +2032,7 @@ paths:
   #     description: Retrieving total counts of files and project identifiers which are not part of any datasets.
   #     responses:
   #       '200':
-  #         description: successful operation.
+  #         description: Successful operation.
   #         schema:
   #           $ref: "#/examples/unused_files"
   #     tags:
@@ -2163,7 +2163,7 @@ parameters:
   deprecated_filter:
     name: deprecated
     in: query
-    description: only return deprecated datasets
+    description: Only return deprecated datasets
     required: false
     type: boolean
 

@@ -565,6 +565,7 @@ class FileService(CommonService, ReferenceDataMixin):
         directory_name: substring search from directory names. Only matching directories are returned.
         Can be used with file_name.
 
+        request: the web request object.
 
         """
         assert request is not None, 'kw parameter request must be specified'

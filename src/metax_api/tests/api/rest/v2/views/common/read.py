@@ -51,10 +51,10 @@ class ApiReadGetDeletedObjects(CatalogRecordApiReadCommon):
         path = '/rest/v2/datasets'
         objects = CatalogRecord.objects.all().values()
 
-        results = self.client.get('{0}?no_pagination&removed=false'.format(path)).json()
+        results = self.client.get('{0}?pagination=false&removed=false'.format(path)).json()
         initial_amt = len(results)
 
-        results = self.client.get('{0}?no_pagination&removed=true'.format(path)).json()
+        results = self.client.get('{0}?pagination=false&removed=true'.format(path)).json()
         self.assertEqual(len(results), 0, "Without removed objects remove=true should return 0 results")
 
         self._use_http_authorization()
@@ -63,10 +63,10 @@ class ApiReadGetDeletedObjects(CatalogRecordApiReadCommon):
             response = self.client.delete('{0}/{1}'.format(path, objects[i]['id']))
             self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, response.data)
 
-        results = self.client.get('{0}?no_pagination&removed=false'.format(path)).json()
+        results = self.client.get('{0}?pagination=false&removed=false'.format(path)).json()
         self.assertEqual(len(results), initial_amt - amt_to_delete, "Non-removed object amount is incorrect")
 
-        results = self.client.get('{0}?no_pagination&removed=true'.format(path)).json()
+        results = self.client.get('{0}?pagination=false&removed=true'.format(path)).json()
         self.assertEqual(len(results), amt_to_delete, "Removed object amount is incorrect")
 
 
@@ -77,20 +77,22 @@ class ApiReadPaginationTests(CatalogRecordApiReadCommon):
     """
 
     def test_read_catalog_record_list_pagination_1(self):
-        response = self.client.get('/rest/v2/datasets?limit=2&offset=0')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), 2, 'There should have been exactly two results')
-        self.assertEqual(response.data['results'][0]['id'], 1, 'Id of first result should have been 1')
+        for param in ['pagination=true', 'pagination', '']:
+            response = self.client.get('/rest/datasets?{}&limit=2&offset=0'.format(param))
+            self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+            self.assertEqual(len(response.data['results']), 2, 'There should have been exactly two results')
+            self.assertEqual(response.data['results'][0]['id'], 1, 'Id of first result should have been 1')
 
     def test_read_catalog_record_list_pagination_2(self):
-        response = self.client.get('/rest/v2/datasets?limit=2&offset=2')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), 2, 'There should have been exactly two results')
-        self.assertEqual(response.data['results'][0]['id'], 3, 'Id of first result should have been 3')
+        for param in ['pagination=true', 'pagination', '']:
+            response = self.client.get('/rest/datasets?{}&limit=2&offset=2'.format(param))
+            self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+            self.assertEqual(len(response.data['results']), 2, 'There should have been exactly two results')
+            self.assertEqual(response.data['results'][0]['id'], 3, 'Id of first result should have been 3')
 
     def test_disable_pagination(self):
-        response = self.client.get('/rest/v2/datasets?no_pagination=true')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.get('/rest/datasets?pagination=false')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
         self.assertEqual('next' not in response.data, True)
         self.assertEqual('results' not in response.data, True)
 
@@ -230,3 +232,34 @@ class ApiReadQueryParamTests(CatalogRecordApiReadCommon):
         self.assertEqual('identifier' in response.data, True)
         self.assertEqual('data_catalog' in response.data, True)
         self.assertEqual(len(response.data.keys()), 2)
+
+        response = self.client.get('/rest/v2/datasets/1?fields=not_found')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # Anonymous user using fields parameter and not including research_dataset should not cause crashing
+        self.client._credentials = {}
+        response = self.client.get('/rest/v2/datasets/1?fields=identifier')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_checksum_field_for_file(self):
+        """
+        Check that checksum field works correctly
+        """
+
+        self._use_http_authorization('metax')
+        response = self.client.get('/rest/files/1?fields=checksum')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data.get('checksum'), 'Checksum JSON should be returned')
+        self.assertTrue(response.data['checksum'].get('algorithm'))
+        self.assertTrue(response.data['checksum'].get('checked'))
+        self.assertTrue(response.data['checksum'].get('value'))
+
+        response = self.client.get('/rest/files/1?fields=checksum:value')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data.get('checksum'), 'Checksum JSON should be returned')
+        self.assertTrue(response.data['checksum'].get('value'))
+        self.assertFalse(response.data['checksum'].get('algorithm'))
+
+        response = self.client.get('/rest/files/1?fields=checksum:badvalue')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue('is not part of' in response.data['detail'][0], 'Should complain about field not found')

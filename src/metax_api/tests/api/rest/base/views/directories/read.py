@@ -32,6 +32,8 @@ class DirectoryApiReadCommon(APITestCase, TestClassUtils):
         self.identifier = dir_from_test_data['identifier']
         self.pk = dir_from_test_data['id']
         self._use_http_authorization()
+        self.client.get('/rest/directories/update_byte_sizes_and_file_counts')
+        self.client.get('/rest/datasets/update_cr_directory_browsing_data')
 
     def _create_test_dirs(self, count):
         count = count + 1
@@ -571,12 +573,26 @@ class DirectoryApiReadCatalogRecordFileBrowsingTests(DirectoryApiReadCommon):
         _assert_dir_calculations(cr, response.data)
 
     # related to test below 'test_directory_byte_size_and_file_count_in_parent_directories'
-    def assertDirectoryData(self, id, parent_data):
-        response = self.client.get('/rest/directories/%s/files?cr_identifier=13&include_parent' % id)
-        self.assertEqual(response.data['byte_size'], parent_data[id][0], response.data['id'])
-        self.assertEqual(response.data['file_count'], parent_data[id][1])
+    def assertDirectoryData(self, dir_id, parent_data):
+        response = self.client.get('/rest/directories/%d/files?cr_identifier=13&include_parent' % dir_id)
+
+        self.assertEqual(response.data['byte_size'], parent_data[dir_id][0], response.data['id'])
+        self.assertEqual(response.data['file_count'], parent_data[dir_id][1])
+
         if response.data.get('parent_directory'):
             return self.assertDirectoryData(response.data['parent_directory']['id'], parent_data)
+
+    def assertDirectoryData_not_cr_id(self, dir_id, parent_data):
+        total_dir_res = self.client.get('/rest/directories/%d' % dir_id)
+        total_dir_size = (total_dir_res.data.get('byte_size', None), total_dir_res.data.get('file_count', None))
+
+        response = self.client.get('/rest/directories/%s/files?not_cr_identifier=13&include_parent' % dir_id)
+        if response.data.get('id'):
+            self.assertEqual(response.data['byte_size'], total_dir_size[0] - parent_data[dir_id][0])
+            self.assertEqual(response.data['file_count'], total_dir_size[1] - parent_data[dir_id][1])
+
+        if response.data.get('parent_directory'):
+            return self.assertDirectoryData_not_cr_id(response.data['parent_directory']['id'], parent_data)
 
     # related to test below 'test_directory_byte_size_and_file_count_in_parent_directories'
     def _get_parent_dir_data_for_cr(self, id):
@@ -613,20 +629,25 @@ class DirectoryApiReadCatalogRecordFileBrowsingTests(DirectoryApiReadCommon):
 
     def test_directory_byte_size_and_file_count_in_parent_directories(self):
         self._set_http_authorization('service')
+        self.client.get('/rest/directories/update_byte_sizes_and_file_counts')
         self.client.get('/rest/datasets/update_cr_directory_browsing_data')
-        cr = self.client.get('/rest/datasets/13')
-        dirs = [Directory.objects.get(identifier=dr['identifier']).id
-            for dr in cr.data['research_dataset']['directories']]
-        parent_data = self._get_parent_dir_data_for_cr(13)
-        for id in dirs:
-            self.assertDirectoryData(id, parent_data)
 
+        cr = self.client.get('/rest/datasets/13')
+        dirs = set([Directory.objects.get(identifier=dr['identifier']).id
+            for dr in cr.data['research_dataset'].get('directories', [])] +
+            [File.objects.get(identifier=file['identifier']).parent_directory.id
+            for file in cr.data['research_dataset'].get('files', [])])
+
+        parent_data = self._get_parent_dir_data_for_cr(13)
+
+        for dir_id in dirs:
+            self.assertDirectoryData(dir_id, parent_data)
+        self.assertDirectoryData_not_cr_id(16, parent_data)
 
 class DirectoryApiReadCatalogRecordFileBrowsingAuthorizationTests(DirectoryApiReadCommon):
     """
     Test browsing files in the context of a specific CatalogRecord from authorization perspective
     """
-
     # THE OK TESTS
 
     def test_returns_ok_for_open_catalog_record_if_no_authorization(self):
@@ -731,13 +752,16 @@ class DirectoryApiReadCatalogRecordFileBrowsingAuthorizationTests(DirectoryApiRe
         dir_id = cr_json['research_dataset']['directories'][0]['identifier']
         cr_id = cr_json['identifier']
         self._set_http_authorization(credentials_type)
+        # self.client.get('/rest/directories/update_byte_sizes_and_file_counts')
+        # self.client.get('/rest/datasets/update_cr_directory_browsing_data')
+
         response = self.client.get('/rest/directories/{0}/files?cr_identifier={1}&recursive&depth=*'
-                                   .format(dir_id, cr_id))
+            .format(dir_id, cr_id))
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
         self.assertEqual(len(response.data), dir_file_amt)
 
         response = self.client.get('/rest/directories/{0}/files?not_cr_identifier={1}&recursive&depth=*'
-                                   .format(dir_id, cr_id))
+            .format(dir_id, cr_id))
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
         self.assertEqual(len(response.data), 0)
 

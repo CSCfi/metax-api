@@ -44,7 +44,7 @@ def retrieve_and_update_all_datasets_in_db(headers):
     print('-- begin retrieving and updating all datasets in the db --')
 
     print('retrieving all datasets...')
-    response = requests.get('https://localhost/rest/datasets?pagination=false',
+    response = requests.get('https://localhost/rest/v2/datasets?pagination=false',
         headers=headers, verify=False)
     if response.status_code != 200:
         raise Exception(response.content)
@@ -58,7 +58,7 @@ def retrieve_and_update_all_datasets_in_db(headers):
     # so use parameter preserve_version
     # using loop to spare our dear test server
     for i in range(0, len(records), n):
-        response = requests.put('https://localhost/rest/datasets?preserve_version',
+        response = requests.put('https://localhost/rest/v2/datasets?preserve_version',
             headers=headers, data=dumps(records[i:i + n]), verify=False)
 
         if response.status_code not in (200, 201, 204):
@@ -75,7 +75,7 @@ def retrieve_and_update_all_data_catalogs_in_db(headers):
     print('-- begin retrieving and updating all data catalogs in the db --')
 
     print('retrieving all data catalog IDs...')
-    response = requests.get('https://localhost/rest/datacatalogs?limit=100', headers=headers, verify=False)
+    response = requests.get('https://localhost/rest/v2/datacatalogs?limit=100', headers=headers, verify=False)
     if response.status_code != 200:
         raise Exception(response.content)
 
@@ -86,10 +86,10 @@ def retrieve_and_update_all_data_catalogs_in_db(headers):
     print('retrieving details of data catalogs and updating %d data catalogs...' % len(data_catalog_ids))
 
     for dc_id in data_catalog_ids:
-        response = requests.get('https://localhost/rest/datacatalogs/%s' % dc_id, headers=headers, verify=False)
+        response = requests.get('https://localhost/rest/v2/datacatalogs/%s' % dc_id, headers=headers, verify=False)
 
         if response.status_code == 200:
-            update_response = requests.put('https://localhost/rest/datacatalogs/%s' % dc_id,
+            update_response = requests.put('https://localhost/rest/v2/datacatalogs/%s' % dc_id,
                                            headers=headers, json=response.json(), verify=False)
             if update_response.status_code not in (200, 201, 204):
                 print(response.status_code)
@@ -103,7 +103,7 @@ def retrieve_and_update_all_data_catalogs_in_db(headers):
 
 def update_directory_byte_sizes_and_file_counts(headers):
     print('-- begin updating byte sizes and file counts in all dirs in all projects --')
-    response = requests.get('https://localhost/rest/directories/update_byte_sizes_and_file_counts',
+    response = requests.get('https://localhost/rest/v2/directories/update_byte_sizes_and_file_counts',
         headers=headers, verify=False)
     if response.status_code not in (200, 201, 204):
         raise Exception(response.text)
@@ -112,7 +112,7 @@ def update_directory_byte_sizes_and_file_counts(headers):
 
 def update_ida_datasets_total_files_byte_size(headers):
     print('-- begin updating IDA CR total ida byte sizes --')
-    response = requests.get('https://localhost/rest/datasets/update_cr_total_files_byte_sizes',
+    response = requests.get('https://localhost/rest/v2/datasets/update_cr_total_files_byte_sizes',
         headers=headers, verify=False)
     if response.status_code not in (200, 201, 204):
         raise Exception(response.text)
@@ -121,7 +121,7 @@ def update_ida_datasets_total_files_byte_size(headers):
 
 def update_cr_directory_browsing_data(headers):
     print('-- begin updating IDA CR directory byte sizes and file counts --')
-    response = requests.get('https://localhost/rest/datasets/update_cr_directory_browsing_data',
+    response = requests.get('https://localhost/rest/v2/datasets/update_cr_directory_browsing_data',
         headers=headers, verify=False)
     if response.status_code not in (200, 201, 204):
         raise Exception(response.text)
@@ -133,7 +133,7 @@ if __name__ == '__main__':
     headers.update(get_auth_header())
 
     for i in range(1, 10):
-        response = requests.get('https://localhost/rest/datasets/1', headers=headers, verify=False)
+        response = requests.get('https://localhost/rest/v2/datasets/1', headers=headers, verify=False)
         if response.status_code == 200:
             break
         sleep(1)

@@ -9,6 +9,7 @@ import logging
 
 from django.db import connection, models
 from django.db.models import Prefetch
+from django.db.models import Count, Sum
 
 from .common import Common
 from .file import File
@@ -151,42 +152,22 @@ class Directory(Common):
         /root/experiments/phase_2
         These do have the numbers calculated. These are the directories that this method is executed
         on initially.
-
-        However:
-        /root
-        /root/experiments
-        These directories do not have the numbers calculated, since they were not specifically added
-        to the dataset. They just happen to be part of the filepath, but they are not intended to
-        be browsed.
-
-        This is OK, since the way files are normally browsed, is through an UI, and
-        they would begin browsing from the selected directories only. The only situation where it may be
-        confusing that numbers are missing, is when manually browsing the API, and seeing all the other
-        data in place, except the numbers. That is "as intended".
         """
         _logger.debug('Calculating directory byte sizes and file counts for project %s, directory %s...' %
             (self.project_identifier, self.directory_path))
 
-        sql = '''
-            select parent_directory_id, sum(f.byte_size) as byte_size, count(f.id) as file_count
-            from metax_api_file f
-            inner join metax_api_catalogrecord_files cr_f on (cr_f.file_id = f.id and cr_f.catalogrecord_id = %s)
-            where f.removed = false and f.active = true
-            group by parent_directory_id
-        '''
-
-        with connection.cursor() as cursor:
-            cursor.execute(sql, [cr_id])
-            grouped_by_dir = {}
-            for row in cursor.fetchall():
-                grouped_by_dir[row[0]] = [ int(row[1]), row[2] ]
+        grouped_by_dir = {}
+        grouped = File.objects.filter(record__pk=cr_id, file_path__icontains=self.directory_path) \
+            .values_list('parent_directory_id').annotate(Sum('byte_size'), Count('id'))
+        for i in grouped:
+            grouped_by_dir[i[0]] = [ int(i[1]), i[2] ]
 
         self._calculate_byte_size_and_file_count_for_cr(grouped_by_dir, directory_data)
 
     def _calculate_byte_size_and_file_count_for_cr(self, grouped_by_dir, directory_data):
         """
         Recursively traverse the sub dirs, and accumulate values from grouped_by_dir, and
-        store into the dict directory_data. Once finished, directory_data will look like:
+        store into the CatalogRecord _directory_data dict. Once finished, directory_data will look like:
         {
             'id1': [byte_size, file_count],
             'id2': [byte_size, file_count],

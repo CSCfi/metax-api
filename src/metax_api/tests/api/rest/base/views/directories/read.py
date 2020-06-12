@@ -468,13 +468,11 @@ class DirectoryApiReadCatalogRecordFileBrowsingTests(DirectoryApiReadCommon):
         self.assertEqual(len(response.data['files']), 5)
 
         # ... but should not contain any files FOR THIS CR
-        response = self.client.get('/rest/directories/4/files?cr_identifier=%s'
-            % CatalogRecord.objects.get(pk=1).identifier)
+        response = self.client.get('/rest/directories/4/files?cr_identifier=1')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         # ... and should contain files ALL BUT THIS CR
-        response = self.client.get('/rest/directories/4/files?not_cr_identifier=%s'
-            % CatalogRecord.objects.get(pk=1).identifier)
+        response = self.client.get('/rest/directories/4/files?not_cr_identifier=1')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['directories']), 1)
         self.assertEqual(len(response.data['files']), 5)

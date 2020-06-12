@@ -156,11 +156,10 @@ class Directory(Common):
         _logger.debug('Calculating directory byte sizes and file counts for project %s, directory %s...' %
             (self.project_identifier, self.directory_path))
 
-        grouped_by_dir = {}
-        grouped = File.objects.filter(record__pk=cr_id, file_path__icontains=self.directory_path) \
-            .values_list('parent_directory_id').annotate(Sum('byte_size'), Count('id'))
-        for i in grouped:
-            grouped_by_dir[i[0]] = [ int(i[1]), i[2] ]
+        stats = File.objects.filter(record__pk=cr_id).values_list('parent_directory_id').annotate(
+            Sum('byte_size'), Count('id'))
+
+        grouped_by_dir = {parent_id: (byte_size, file_count) for parent_id, byte_size, file_count in stats}
 
         self._calculate_byte_size_and_file_count_for_cr(grouped_by_dir, directory_data)
 

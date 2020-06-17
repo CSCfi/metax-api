@@ -47,27 +47,6 @@ class DirectoryApiReadCommon(APITestCase, TestClassUtils):
         else:
             return [f['id'] for f in file_data]
 
-    def _get_new_file_data(self, file_n):
-        from_test_data = self._get_object_from_test_data('file', requested_index=0)
-
-        path = '/prj_112_root/science_data_C/phase_2/2017/10/dir_' + file_n + '/file_' + file_n
-        identifier = 'urn:nbn:fi:100' + file_n
-
-        from_test_data.update({
-            "checksum": {
-                "value": "habeebit",
-                "algorithm": "SHA-256",
-                "checked": "2017-05-23T10:07:22.559656Z",
-            },
-            "file_name": "tiedosto_name_" + file_n,
-            "file_path": path,
-            "identifier": identifier,
-            "file_storage": self._get_object_from_test_data('filestorage', requested_index=0),
-            'parent_directory': 24,
-            'project_identifier': 'research_project_112'
-        })
-        del from_test_data['id']
-        return from_test_data
 
 class DirectoryApiReadBasicTests(DirectoryApiReadCommon):
     def test_read_directory_list(self):

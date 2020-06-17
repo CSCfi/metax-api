@@ -834,14 +834,6 @@ class FileService(CommonService, ReferenceDataMixin):
         def _cr_belongin_to_directory(cr_id):
             if recursive:
                 return Directory.objects.filter(parent_directory_id=directory_id).values('id')
-            drs = Directory.objects.filter(parent_directory_id=directory_id).values_list('directory_path', flat=True)
-            paths = [dir for dir in drs if File.objects.filter(record__id=cr_id, file_path__contains=dir)]
-            dirs = Directory.objects.filter(parent_directory=directory_id, directory_path__in=paths)
-            if not_cr_id:
-                return dirs
-            ###############################################################################
-            # commented lines are result of changing direct SQL query to Django ORM query #
-            ###############################################################################
 
             # select dirs which are contained by the directory,
             # AND which contain files belonging to the cr <-> files m2m relation table,
@@ -855,53 +847,50 @@ class FileService(CommonService, ReferenceDataMixin):
             # which is set(DirectorySerializer.Meta.fields). Should be safe to use in raw SQL,
             # but considered to be more safe to sanitize here once more.
 
-            # from metax_api.api.rest.base.serializers import DirectorySerializer
+            from metax_api.api.rest.base.serializers import DirectorySerializer
 
-            # allowed_fields = set(DirectorySerializer.Meta.fields)
+            allowed_fields = set(DirectorySerializer.Meta.fields)
 
-            # directory_fields_sql = []
+            directory_fields_sql = []
 
-            # for field in directory_fields:
-            #     if field in allowed_fields:
-            #         directory_fields_sql.append('d.' + field)
-            #     elif 'parent_directory__' in field and field.split('parent_directory__')[1] in allowed_fields:
-            #         directory_fields_sql.append(field.replace('parent_directory__', 'parent_d.'))
+            for field in directory_fields:
+                if field in allowed_fields:
+                    directory_fields_sql.append('d.' + field)
+                elif 'parent_directory__' in field and field.split('parent_directory__')[1] in allowed_fields:
+                    directory_fields_sql.append(field.replace('parent_directory__', 'parent_d.'))
 
-            # directory_fields_string_sql = ', '.join(directory_fields_sql)
+            directory_fields_string_sql = ', '.join(directory_fields_sql)
 
-            # dir_name_sql = '' if not directory_name else "AND d.directory_name LIKE ('%%' || %s || '%%')"
+            dir_name_sql = '' if not directory_name else "AND d.directory_name LIKE ('%%' || %s || '%%')"
 
-            # directory_fields_string_sql = ', '.join(directory_fields_sql)
-            # dir_name_sql = '' if not directory_name else "AND d.directory_name LIKE ('%%' || %s || '%%')"
-            # sql_select_dirs_for_cr = """
-            #     SELECT {}
-            #     FROM metax_api_directory d
-            #     JOIN metax_api_directory parent_d
-            #         ON d.parent_directory_id = parent_d.id
-            #     WHERE d.parent_directory_id = %s
-            #         {}
-            #     AND EXISTS(
-            #         SELECT 1
-            #         FROM metax_api_file f
-            #         INNER JOIN metax_api_catalogrecord_files cr_f ON cr_f.file_id = f.id
-            #         WHERE f.file_path LIKE (d.directory_path || '/%%')
-            #         AND cr_f.catalogrecord_id = %s
-            #         AND f.removed = false
-            #         AND f.active = true
-            #     )
-            #     """
-            # with connection.cursor() as cr:
+            directory_fields_string_sql = ', '.join(directory_fields_sql)
+            dir_name_sql = '' if not directory_name else "AND d.directory_name LIKE ('%%' || %s || '%%')"
 
-            # sql_select_dirs_for_cr = sql_select_dirs_for_cr.format(directory_fields_string_sql, dir_name_sql)
+            sql_select_dirs_for_cr = """
+                SELECT {}
+                FROM metax_api_directory d
+                JOIN metax_api_directory parent_d
+                    ON d.parent_directory_id = parent_d.id
+                WHERE d.parent_directory_id = %s
+                    {}
+                AND EXISTS(
+                    SELECT 1
+                    FROM metax_api_file f
+                    INNER JOIN metax_api_catalogrecord_files cr_f ON cr_f.file_id = f.id
+                    WHERE f.file_path LIKE (d.directory_path || '/%%')
+                    AND cr_f.catalogrecord_id = %s
+                    AND f.removed = false
+                    AND f.active = true
+                )
+                """
+            with connection.cursor() as cr:
+                sql_select_dirs_for_cr = sql_select_dirs_for_cr.format(directory_fields_string_sql, dir_name_sql)
+                sql_params = [directory_id, directory_name, cr_id] if directory_name else [directory_id, cr_id]
+                cr.execute(sql_select_dirs_for_cr, sql_params)
 
-            # sql_params = [directory_id, directory_name, cr_id] if directory_name else [directory_id, cr_id]
+                dirs = [dict(zip(directory_fields, row)) for row in cr.fetchall()]
 
-            # cr.execute(sql_select_dirs_for_cr, sql_params)
-
-            # dirs = [dict(zip(directory_fields, row)) for row in cr.fetchall()]
-            # return dirs
-
-            return dirs.values(*directory_fields)
+            return dirs
 
         if cr_id:
             dirs = _cr_belongin_to_directory(cr_id)
@@ -911,9 +900,10 @@ class FileService(CommonService, ReferenceDataMixin):
 
         elif not_cr_id:
             dirs = _cr_belongin_to_directory(not_cr_id)
+
             if not recursive:
-                dirs = Directory.objects.filter(parent_directory=directory_id).exclude(id__in=dirs).values(
-                    *directory_fields)
+                dirs = Directory.objects.filter(parent_directory=directory_id).exclude(
+                    id__in=[dir['id'] for dir in dirs]).values(*directory_fields)
 
             files = None if dirs_only else File.objects.exclude(record__pk=not_cr_id) \
                 .filter(parent_directory=directory_id).values(*file_fields)
@@ -924,8 +914,6 @@ class FileService(CommonService, ReferenceDataMixin):
             raise Http404
 
         # icontains returns exception on None and with empty string does unnecessary db hits
-        if dirs and directory_name:
-            dirs = dirs.filter(directory_name__icontains=directory_name)
         if files and file_name:
             files = files.filter(file_name__icontains=file_name)
 

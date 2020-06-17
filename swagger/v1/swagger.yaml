@@ -668,6 +668,21 @@ paths:
           description: Max depth of recursion. Value must be an integer > 0, or *. Default value is 1.
           required: false
           type: string
+        - name: cr_identifier
+          in: query
+          description: |
+            Identifier of a catalog record. browse only files that have been selected for that record.
+            This parameter is incompatible with `not_cr_identifier` parameter.
+          required: false
+          type: string
+        - name: not_cr_identifier
+          in: query
+          description: |
+            Identifier of a catalog record. Browse only files that have not been selected for that record.
+            Parameter is only usable by the owner of the dataset and it's primary use is for editing datasets.
+            This parameter is incompatible with `cr_identifier` parameter.
+          required: false
+          type: string
         - name: directories_only
           in: query
           description: |

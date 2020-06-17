@@ -328,7 +328,7 @@ class LightSerializer():
 
         The end result is supposed to look the same as normally from a serializer.
         """
-        assert type(unserialized_data) in (QuerySet, dict), 'unserialized_data type must be QuerySet or dict'
+        assert type(unserialized_data) in (QuerySet, dict, list), 'unserialized_data type must be QuerySet or dict'
         assert isinstance(cls.special_fields, set), 'light serializer must specify special_fields as a set()'
         assert isinstance(cls.relation_fields, set), 'light serializer must specify relation_fields as a set()'
 
@@ -340,7 +340,7 @@ class LightSerializer():
         for field in relation_fields:
             _relation_id_fields.add('%s_id' % field)
 
-        if isinstance(unserialized_data, QuerySet):
+        if isinstance(unserialized_data, (QuerySet, list)):
             unserialized_data = unserialized_data
             # print('--unserialized_data', unserialized_data)
             multi = True

@@ -608,16 +608,15 @@ class DirectoryApiReadCatalogRecordFileBrowsingTests(DirectoryApiReadCommon):
                     pks.append(pk)
                     _get_parents(pk)
 
-            cr_data = CatalogRecord.objects.get(pk=id).files.values_list('parent_directory_id') \
-                .annotate(Sum('byte_size'), Count('id'))
-
+            cr_data = CatalogRecord.objects.get(pk=id).files.order_by('parent_directory_id').values_list(
+                'parent_directory_id').annotate(Sum('byte_size'), Count('id'))
             grouped_cr_data = {parent_id: [byte_size, file_count] for parent_id, byte_size, file_count in cr_data}
 
             drs = {}
-            for i in grouped_cr_data.keys():
+            for dir in grouped_cr_data.keys():
                 pks = []
-                _get_parents(i)
-                drs[i] = pks
+                _get_parents(dir)
+                drs[dir] = pks
 
             for key, value in drs.items():
                 for v in value:
@@ -630,10 +629,6 @@ class DirectoryApiReadCatalogRecordFileBrowsingTests(DirectoryApiReadCommon):
             return grouped_cr_data
 
         # begin tests
-
-        # self._set_http_authorization('service')
-        # self.client.get('/rest/v2/directories/update_byte_sizes_and_file_counts')
-        # self.client.get('/rest/v2/datasets/update_cr_directory_browsing_data')
 
         cr = self.client.get('/rest/v2/datasets/%d?include_user_metadata&file_details&'
             'directory_fields=id,byte_size,file_count,parent_directory'

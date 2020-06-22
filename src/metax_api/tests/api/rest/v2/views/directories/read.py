@@ -631,7 +631,7 @@ class DirectoryApiReadCatalogRecordFileBrowsingTests(DirectoryApiReadCommon):
         # begin tests
 
         cr = self.client.get('/rest/v2/datasets/%d?include_user_metadata&file_details&'
-            'directory_fields=id,byte_size,file_count,parent_directory'
+            'directory_fields=id,byte_size,file_count,parent_directory&'
             'file_fields=id,byte_size,parent_directory' % cr_id)
 
         dirs = [d['details']['id'] for d in cr.data['research_dataset'].get('directories', [])] + \

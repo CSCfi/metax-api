@@ -131,27 +131,6 @@ class Directory(Common):
         selected directories and a specific catalog record, and store total byte size and
         file count for each directory into parameter directory_data. Intended to be called
         for the top-level directories of a project in a dataset.
-
-        NOTE: Does not handle numbers for "leading prefix directories", or explained more verbally,
-        directories in the following case:
-
-        Example:
-
-        The following directories are added to a dataset
-
-        /root/experiments/phase_1
-        /root/experiments/phase_1/2020
-        /root/experiments/phase_1/2021
-        /root/experiments/phase_2
-        /root/experiments/phase_1/2022
-        /root/experiments/phase_1/2023
-
-        Here, these two directories are "top level directories", which basically already include
-        all the files:
-        /root/experiments/phase_1
-        /root/experiments/phase_2
-        These do have the numbers calculated. These are the directories that this method is executed
-        on initially.
         """
         _logger.debug('Calculating directory byte sizes and file counts for project %s, directory %s...' %
             (self.project_identifier, self.directory_path))

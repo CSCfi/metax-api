@@ -553,6 +553,7 @@ class FileService(CommonService, ReferenceDataMixin):
         being retrieved in the results. Example: /directories/3/files?include_parent=true also
         includes the data about directory id 3 in the results. Normally its data would not be
         present, and instead would need to be retrieved by calling /directories/3.
+
         file_name: substring search from file names. Only matching files are returned.
         Can be used with directory_name.
 
@@ -863,9 +864,6 @@ class FileService(CommonService, ReferenceDataMixin):
 
             dir_name_sql = '' if not directory_name else "AND d.directory_name LIKE ('%%' || %s || '%%')"
 
-            directory_fields_string_sql = ', '.join(directory_fields_sql)
-            dir_name_sql = '' if not directory_name else "AND d.directory_name LIKE ('%%' || %s || '%%')"
-
             sql_select_dirs_for_cr = """
                 SELECT {}
                 FROM metax_api_directory d
@@ -938,29 +936,10 @@ class FileService(CommonService, ReferenceDataMixin):
                 cls.retrieve_directory_byte_sizes_and_file_counts_for_cr(sub_dir, not_cr_id,
                     directory_fields, cr_directory_data)
 
-            # this block is not executed for the top-level directory, unless query param
-            # include_parent is used.
-            if 'id' in directory:
-                if not_cr_id:
-                    dr_total = Directory.objects.values('id', 'byte_size', 'file_count').get(id=directory['id'])
-
-                current_dir = cr_directory_data.get(str(directory['id']), [0, 0])
-
-                if BYTE_SIZE:
-                    if not_cr_id:
-                        directory['byte_size'] = dr_total['byte_size'] - current_dir[0]
-                    else:
-                        directory['byte_size'] = current_dir[0]
-
-                if FILE_COUNT:
-                    if not_cr_id:
-                        directory['file_count'] = dr_total['file_count'] - current_dir[1]
-                    else:
-                        directory['file_count'] = current_dir[1]
-
-        elif 'id' in directory:
+        if 'id' in directory:
             # bottom dir - retrieve total byte_size and file_count for this cr
             current_dir = cr_directory_data.get(str(directory['id']), [0, 0])
+
             if not_cr_id:
                 dr_total = Directory.objects.values('id', 'byte_size', 'file_count').get(id=directory['id'])
 

@@ -78,19 +78,19 @@ class DirectoryApiWriteTests(DirectoryApiWriteCommon):
         self._set_http_authorization('service')
 
         # adding file1 to /dir/
-        response = self.client.post('/rest/v2/files', files[0], format='json')
+        response = self.client.post('/rest/files', files[0], format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
 
         file1_id = response.data['identifier']
 
         # adding file2 to /dir/
-        response = self.client.post('/rest/v2/files', files[1], format='json')
+        response = self.client.post('/rest/files', files[1], format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
 
         file2_id = response.data['identifier']
 
         # adding file3 to /dir/
-        response = self.client.post('/rest/v2/files', files[2], format='json')
+        response = self.client.post('/rest/files', files[2], format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
 
         file3_id = response.data['identifier']

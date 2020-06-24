@@ -342,7 +342,6 @@ class LightSerializer():
 
         if isinstance(unserialized_data, (QuerySet, list)):
             unserialized_data = unserialized_data
-            # print('--unserialized_data', unserialized_data)
             multi = True
         if isinstance(unserialized_data, dict):
             unserialized_data = [unserialized_data]
@@ -353,7 +352,6 @@ class LightSerializer():
 
         for row in unserialized_data:
             item = {}
-            # print('---row', type(row), row)
             if not row:
                 return [] if multi else {}
             for field, value in row.items():

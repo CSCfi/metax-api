@@ -517,9 +517,9 @@ class FileService(CommonService, ReferenceDataMixin):
             CallableService.add_post_request_callable(RabbitMQPublishRecord(cr, 'update'))
 
     @classmethod
-    def get_directory_contents(cls, identifier=None, path=None, project_identifier=None, recursive=False,
-            max_depth=1, dirs_only=False, include_parent=False, cr_identifier=None, not_cr_identifier=None,
-            file_name=None, directory_name=None, request=None):
+    def get_directory_contents(cls, identifier=None, path=None, project_identifier=None,
+            recursive=False, max_depth=1, dirs_only=False, include_parent=False, cr_identifier=None,
+            not_cr_identifier=None, file_name=None, directory_name=None, request=None):
         """
         Get files and directories contained by a directory.
 
@@ -560,14 +560,7 @@ class FileService(CommonService, ReferenceDataMixin):
         directory_name: substring search from directory names. Only matching directories are returned.
         Can be used with file_name.
 
-        file_name: substring search from file names. Only matching files are returned.
-        Can be used with directory_name.
-
-        directory_name: substring search from directory names. Only matching directories are returned.
-        Can be used with file_name.
-
         request: the web request object.
-
         """
         assert request is not None, 'kw parameter request must be specified'
         from metax_api.api.rest.base.serializers import LightDirectorySerializer
@@ -600,7 +593,7 @@ class FileService(CommonService, ReferenceDataMixin):
             # generally browsing the directory - NOT in the context of a cr! check user permissions
             if not request.user.is_service:
                 cls.check_user_belongs_to_project(request, directory['project_identifier'])
-
+            cr_id = None
             cr_directory_data = {}
 
         # get list of field names to retrieve. note: by default all fields are retrieved
@@ -753,7 +746,6 @@ class FileService(CommonService, ReferenceDataMixin):
         If directory_fields and/or file_fields are specified, then only specified fields are retrieved
         for directories and files respectively.
         """
-
         if recursive and max_depth != '*':
             if depth > max_depth:
                 raise MaxRecursionDepthExceeded('max depth is %d' % max_depth)
@@ -765,7 +757,6 @@ class FileService(CommonService, ReferenceDataMixin):
                     directory_id,
                     cr_id,
                     not_cr_id,
-                    recursive=recursive,
                     dirs_only=dirs_only,
                     directory_fields=directory_fields,
                     file_fields=file_fields,
@@ -823,88 +814,83 @@ class FileService(CommonService, ReferenceDataMixin):
                 directory['directories'] = sub_dir_contents['directories']
                 if 'files' in sub_dir_contents:
                     directory['files'] = sub_dir_contents['files']
+
         return contents
 
     @classmethod
     def _get_directory_contents_for_catalog_record(cls, directory_id, cr_id, not_cr_id, file_name, directory_name,
-            recursive, dirs_only=False, directory_fields=[], file_fields=[]):
+            dirs_only=False, directory_fields=[], file_fields=[]):
         """
         Browsing files in the context of a specific CR id.
         """
 
-        def _cr_belongin_to_directory(cr_id):
-            if recursive:
-                return Directory.objects.filter(parent_directory_id=directory_id).values('id')
+        # select dirs which are contained by the directory,
+        # AND which contain files belonging to the cr <-> files m2m relation table,
+        # AND there exists files for CR which begin with the same path as the dir path,
+        # to successfully also include files which did not DIRECTLY contain any files, but do
+        # contain files further down the tree.
+        # dirs which otherwise contained files, but not any files that were selected for
+        # the cr, are not returned.
 
-            # select dirs which are contained by the directory,
-            # AND which contain files belonging to the cr <-> files m2m relation table,
-            # AND there exists files for CR which begin with the same path as the dir path,
-            # to successfully also include files which did not DIRECTLY contain any files, but do
-            # contain files further down the tree.
-            # dirs which otherwise contained files, but not any files that were selected for
-            # the cr, are not returned.
+        # directory_fields are validated in LightDirectorySerializer against allowed fields
+        # which is set(DirectorySerializer.Meta.fields). Should be safe to use in raw SQL,
+        # but considered to be more safe to sanitize here once more.
 
-            # directory_fields are validated in LightDirectorySerializer against allowed fields
-            # which is set(DirectorySerializer.Meta.fields). Should be safe to use in raw SQL,
-            # but considered to be more safe to sanitize here once more.
+        from metax_api.api.rest.base.serializers import DirectorySerializer
 
-            from metax_api.api.rest.base.serializers import DirectorySerializer
+        allowed_fields = set(DirectorySerializer.Meta.fields)
 
-            allowed_fields = set(DirectorySerializer.Meta.fields)
+        directory_fields_sql = []
 
-            directory_fields_sql = []
+        for field in directory_fields:
+            if field in allowed_fields:
+                directory_fields_sql.append('d.' + field)
+            elif 'parent_directory__' in field and field.split('parent_directory__')[1] in allowed_fields:
+                directory_fields_sql.append(field.replace('parent_directory__', 'parent_d.'))
 
-            for field in directory_fields:
-                if field in allowed_fields:
-                    directory_fields_sql.append('d.' + field)
-                elif 'parent_directory__' in field and field.split('parent_directory__')[1] in allowed_fields:
-                    directory_fields_sql.append(field.replace('parent_directory__', 'parent_d.'))
+        directory_fields_string_sql = ', '.join(directory_fields_sql)
 
-            directory_fields_string_sql = ', '.join(directory_fields_sql)
+        dir_name_sql = '' if not directory_name else "AND d.directory_name LIKE ('%%' || %s || '%%')"
 
-            dir_name_sql = '' if not directory_name else "AND d.directory_name LIKE ('%%' || %s || '%%')"
+        sql_select_dirs_for_cr = """
+            SELECT {}
+            FROM metax_api_directory d
+            JOIN metax_api_directory parent_d
+                ON d.parent_directory_id = parent_d.id
+            WHERE d.parent_directory_id = %s
+                {}
+            AND EXISTS(
+                SELECT 1
+                FROM metax_api_file f
+                INNER JOIN metax_api_catalogrecord_files cr_f ON cr_f.file_id = f.id
+                WHERE f.file_path LIKE (d.directory_path || '/%%')
+                AND cr_f.catalogrecord_id {} %s
+                AND f.removed = false
+                AND f.active = true
+            )
+            """
 
-            sql_select_dirs_for_cr = """
-                SELECT {}
-                FROM metax_api_directory d
-                JOIN metax_api_directory parent_d
-                    ON d.parent_directory_id = parent_d.id
-                WHERE d.parent_directory_id = %s
-                    {}
-                AND EXISTS(
-                    SELECT 1
-                    FROM metax_api_file f
-                    INNER JOIN metax_api_catalogrecord_files cr_f ON cr_f.file_id = f.id
-                    WHERE f.file_path LIKE (d.directory_path || '/%%')
-                    AND cr_f.catalogrecord_id = %s
-                    AND f.removed = false
-                    AND f.active = true
-                )
-                """
-            with connection.cursor() as cr:
-                sql_select_dirs_for_cr = sql_select_dirs_for_cr.format(directory_fields_string_sql, dir_name_sql)
+        with connection.cursor() as cr:
+            if cr_id:
+                sql_select_dirs_for_cr = sql_select_dirs_for_cr.format(directory_fields_string_sql, dir_name_sql, '=')
+
                 sql_params = [directory_id, directory_name, cr_id] if directory_name else [directory_id, cr_id]
+
                 cr.execute(sql_select_dirs_for_cr, sql_params)
 
-                dirs = [dict(zip(directory_fields, row)) for row in cr.fetchall()]
+                files = None if dirs_only else File.objects \
+                    .filter(record__pk=cr_id, parent_directory=directory_id).values(*file_fields)
+            elif not_cr_id:
+                sql_select_dirs_for_cr = sql_select_dirs_for_cr.format(directory_fields_string_sql, dir_name_sql, '!=')
 
-            return dirs
+                sql_params = [directory_id, directory_name, not_cr_id] if directory_name else [directory_id, not_cr_id]
 
-        if cr_id:
-            dirs = _cr_belongin_to_directory(cr_id)
+                cr.execute(sql_select_dirs_for_cr, sql_params)
 
-            files = None if dirs_only else File.objects \
-                .filter(record__pk=cr_id, parent_directory=directory_id).values(*file_fields)
+                files = None if dirs_only else File.objects.exclude(record__pk=not_cr_id) \
+                    .filter(parent_directory=directory_id).values(*file_fields)
 
-        elif not_cr_id:
-            dirs = _cr_belongin_to_directory(not_cr_id)
-
-            if not recursive:
-                dirs = Directory.objects.filter(parent_directory=directory_id).exclude(
-                    id__in=[dir['id'] for dir in dirs]).values(*directory_fields)
-
-            files = None if dirs_only else File.objects.exclude(record__pk=not_cr_id) \
-                .filter(parent_directory=directory_id).values(*file_fields)
+            dirs = [dict(zip(directory_fields, row)) for row in cr.fetchall()]
 
         if not dirs and not files:
             # for this specific version of the record, the requested directory either
@@ -925,6 +911,7 @@ class FileService(CommonService, ReferenceDataMixin):
         in the context of a specific catalog record.
         Note: Called recursively.
         """
+
         if not directory_fields:
             BYTE_SIZE = FILE_COUNT = True
         else:

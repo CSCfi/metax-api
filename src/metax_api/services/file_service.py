@@ -1229,6 +1229,16 @@ class FileService(CommonService, ReferenceDataMixin):
                 raise Http400({
                     'file_path': ['file_path is a required parameter (file id: %s)' % row['identifier']]
                 })
+            else:
+                # TODO:
+                # this bug is found in frontend when path is missing first '/'
+                # (https://jira.eduuni.fi/browse/CSCFAIRMETA-608)
+                # should there be validation error:
+                # 'raise ValidationError('file path should start with "/" to point to the root')'
+                # or simply correct the missing char here
+                # as there must not be a situation where file_path is not starting with slash char?
+                if row['file_path'].split()[0] != '/':
+                    row['file_path'] = '/' + row['file_path']
 
             if 'project_identifier' not in row:
                 raise Http400({

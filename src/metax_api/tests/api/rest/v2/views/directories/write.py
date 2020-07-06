@@ -57,7 +57,7 @@ class DirectoryApiWriteCommon(APITestCase, TestClassUtils):
 
 class DirectoryApiWriteTests(DirectoryApiWriteCommon):
 
-    def _test_create_files_for_catalog_record(self):
+    def test_create_files_for_catalog_record(self):
         """
         Tests flow of creating files and assigning them to dataset.
         """

@@ -89,7 +89,6 @@ class DatasetRPCTests(APITestCase, TestClassUtils):
         cr_json.pop('identifier')
         cr_json['research_dataset'].pop('preferred_identifier', None)
         cr_json['data_catalog'] = dc_id
-        cr_json['research_dataset']['issued'] = '2018-01-01'
         cr_json['research_dataset']['publisher'] = {
             '@type': 'Organization',
             'name': { 'en': 'publisher' }
@@ -108,7 +107,7 @@ class DatasetRPCTests(APITestCase, TestClassUtils):
         self.assertEqual(response.data, response2.data['preservation_identifier'], response2.data)
 
         # Return 400 if request is not correct datacite format
-        response2.data['research_dataset'].pop('issued')
+        response2.data['research_dataset'].pop('publisher')
         response = self.client.put(f'/rest/datasets/{identifier}', response2.data, format="json")
         self.assertEqual(response2.status_code, status.HTTP_200_OK, response2.data)
 

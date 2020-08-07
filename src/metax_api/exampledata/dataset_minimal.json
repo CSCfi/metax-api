@@ -19,6 +19,7 @@
                 }
             }
         ],
+        "issued": "2000-01-01",
         "access_rights": {
             "access_type": {
                 "identifier": "http://uri.suomi.fi/codelist/fairdata/access_type/code/open"

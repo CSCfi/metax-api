@@ -1432,7 +1432,8 @@
                 "creator",
                 "description",
                 "access_rights",
-                "title"
+                "title",
+                "issued"
             ],
             "additionalProperties": false
         },

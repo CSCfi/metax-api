@@ -179,6 +179,7 @@ class StatisticRPCCommon(APITestCase, TestClassUtils):
                         }
                     }
                 ],
+                "issued": "2010-01-01",
                 "access_rights": {
                     "access_type": {
                         "identifier": "http://uri.suomi.fi/codelist/fairdata/access_type/code/open",

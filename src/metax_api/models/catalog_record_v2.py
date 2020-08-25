@@ -1198,6 +1198,8 @@ class CatalogRecordV2(CatalogRecord):
             )
         elif not self.catalog_versions_datasets():
             raise Http400('Data catalog does not allow dataset versioning')
+        elif self.state == self.STATE_DRAFT:
+            raise Http400('Cannot create new version from draft dataset')
 
         self._new_version = self._create_new_dataset_version_template()
         self._create_new_dataset_version()

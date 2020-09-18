@@ -32,8 +32,8 @@ class CatalogRecordApiWriteREMS(CatalogRecordApiWriteCommon):
         # license type does not matter
         "license": [
             {
-                "title": rf['reference_data']['license'][0]['label'],
-                "identifier": rf['reference_data']['license'][0]['uri']
+                "title": rf['reference_data']['license'][1]['label'],
+                "identifier": rf['reference_data']['license'][1]['uri']
             }
         ],
         "access_type": {
@@ -52,7 +52,7 @@ class CatalogRecordApiWriteREMS(CatalogRecordApiWriteCommon):
     }
 
     # any other than what is included in permit_rights is sufficient
-    other_license = rf['reference_data']['license'][1]
+    other_license = rf['reference_data']['license'][0]
 
     def setUp(self):
         super().setUp()
@@ -131,12 +131,12 @@ class CatalogRecordApiWriteREMS(CatalogRecordApiWriteCommon):
                     "archived": False,
                     "localizations": {
                         "fi": {
-                            "title": self.rf['reference_data']['license'][0]['label']['fi'],
-                            "textcontent": self.rf['reference_data']['license'][0]['uri']
+                            "title": self.rf['reference_data']['license'][1]['label']['fi'],
+                            "textcontent": self.rf['reference_data']['license'][1]['uri']
                         },
                         "und": {
-                            "title": self.rf['reference_data']['license'][0]['label']['und'],
-                            "textcontent": self.rf['reference_data']['license'][0]['uri']
+                            "title": self.rf['reference_data']['license'][1]['label']['und'],
+                            "textcontent": self.rf['reference_data']['license'][1]['uri']
                         }
                     }
                 },

@@ -5,8 +5,9 @@
 # :author: CSC - IT Center for Science Ltd., Espoo Finland <servicedesk@csc.fi>
 # :license: MIT
 
-from os import path
+from copy import deepcopy
 import logging
+from os import path
 
 from jsonschema import Draft4Validator, RefResolver
 from jsonschema.exceptions import ValidationError as JsonValidationError
@@ -25,6 +26,12 @@ _logger = logging.getLogger(__name__)
 
 
 class CatalogRecordSerializerV2(CatalogRecordSerializer):
+
+    class Meta:
+        # deepcopied, so that changes in this model don't affect
+        # the V1 model
+        fields = deepcopy(CatalogRecordSerializer.Meta.fields)
+        extra_kwargs = deepcopy(CatalogRecordSerializer.Meta.extra_kwargs)
 
     # define separately for inherited class, so that schemas are searched
     # from api/rest/v2/schemas, instead of api/rest/v1/schemas

@@ -15,3 +15,4 @@ from .file import File
 from .file_storage import FileStorage
 from .metax_user import MetaxUser
 from .xml_metadata import XmlMetadata
+from .draft import Draft

@@ -30,6 +30,9 @@ class Draft(CatalogRecordV2):
         obj.research_dataset['metadata_version_identifier'] = generate_uuid_identifier()
         obj.api_meta['version'] = obj.api_version
         obj.state = cls.STATE_DRAFT
+        if original_record.files.exists():
+            # note: _directory_data field is already copied when the template is made
+            obj.files.add(*original_record.files.all())
         return obj
 
     def save(self, original_record:CatalogRecordV2, *args, **kwargs):
@@ -38,20 +41,9 @@ class Draft(CatalogRecordV2):
         """
         _logger.info('Creating a draft of a published dataset...')
 
-        self.cumulative_state = original_record.cumulative_state
-        self.research_dataset['preferred_identifier'] = 'draft:%s' % self.identifier
-
-        if original_record.files.exists():
-            # note: _directory_data field is already copied when the template is made
-            self.files.add(*original_record.files.all())
-
-        original_record.next_draft = self
-
         # v2 api successfully invoked, change the api version to prevent further updates on v1 api
         self._set_api_version()
         super(Draft, self).save(*args, **kwargs)
-
-
 
         log_args = {
             'event': 'dataset_draft_created',

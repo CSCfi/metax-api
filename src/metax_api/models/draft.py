@@ -35,7 +35,7 @@ class Draft(CatalogRecordV2):
             obj.files.add(*original_record.files.all())
         return obj
 
-    def save(self, original_record:CatalogRecordV2, *args, **kwargs):
+    def save(self, *args, **kwargs):
         """
         Create a new draft of a published dataset, that can later be merged back to the original published dataset.
         """

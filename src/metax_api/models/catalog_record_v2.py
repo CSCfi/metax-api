@@ -187,8 +187,10 @@ class CatalogRecordV2(CatalogRecord):
         elif self.is_draft_for_another_dataset():
             raise Http400(
                 'This dataset is a draft for another published dataset. To publish the draft changes, '
-                'use API /rpc/v2/datasets/publish_draft'
+                'use API /rpc/v2/datasets/merge_draft'
             )
+        elif self.catalog_is_dft():
+            raise Http400('Cannot publish dataset in draft catalog')
 
         self.state = self.STATE_PUBLISHED
 
@@ -703,6 +705,9 @@ class CatalogRecordV2(CatalogRecord):
         if not (file_changes.get('files') or file_changes.get('directories')):
             _logger.debug('Received data does not include files or directories - returning')
             return
+
+        if self.catalog_is_dft():
+            raise Http400('Adding files in draft catalog is not permitted. Please select valid datacatalog first.')
 
         # create an instance of the serializer for later validations
         serializer = self.serializer_class(self)

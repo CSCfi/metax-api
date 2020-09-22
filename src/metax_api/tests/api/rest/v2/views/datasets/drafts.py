@@ -35,12 +35,24 @@ class CatalogRecordDraftTests(CatalogRecordApiWriteCommon):
         catalog_json = dc.catalog_json
         for identifier in END_USER_ALLOWED_DATA_CATALOGS:
             catalog_json['identifier'] = identifier
+            # not all non-draft catalogs are actually ida but that is not tested here
+            catalog_json['research_dataset_schema'] = 'dft' if identifier == DFT_CATALOG else 'ida'
             dc = DataCatalog.objects.create(
                 catalog_json=catalog_json,
                 date_created=get_tz_aware_now_without_micros(),
                 catalog_record_services_create='testuser,api_auth_user,metax',
                 catalog_record_services_edit='testuser,api_auth_user,metax'
             )
+
+        self.minimal_draft = {
+            "metadata_provider_org": "abc-org-123",
+            "metadata_provider_user": "abc-usr-123",
+            "research_dataset": {
+                "title": {
+                    "en": "Wonderful Title"
+                }
+            }
+        }
 
         self.token = get_test_oidc_token(new_proxy=True)
         self._mock_token_validation_succeeds()
@@ -381,7 +393,7 @@ class CatalogRecordDraftTests(CatalogRecordApiWriteCommon):
 
             response = self.client.post('/rest/v2/datasets?draft', self.minimal_draft, format="json")
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, response.data)
-            self.assertTrue('Cannot add files' in response.data['detail'][0], response.data)
+            self.assertTrue('files in draft catalog' in response.data['detail'][0], response.data)
 
             self.minimal_draft['research_dataset'].pop(type)
 

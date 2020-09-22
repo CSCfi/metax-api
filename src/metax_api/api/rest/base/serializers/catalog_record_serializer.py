@@ -422,7 +422,7 @@ class CatalogRecordSerializer(CommonSerializer):
 
         if self._operation_is_create:
             if not value.get('preferred_identifier', None):
-                if DataCatalogService.is_harvested(self.initial_data['data_catalog']):
+                if DataCatalogService.is_harvested(self.initial_data.get('data_catalog')):
                     raise ValidationError({ 'preferred_identifier':
                         ['harvested catalog record must have preferred identifier']})
 

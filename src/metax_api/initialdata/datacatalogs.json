@@ -285,4 +285,59 @@
         "dataset_versioning": false,
         "research_dataset_schema": "att"
     }
+},
+{
+    "catalog_json": {
+        "title": {
+          "en": "Metadata catalog for draft datasets",
+          "fi": "Luonnostilassa olevien aineistojen kuvailutietokatalogi"
+        },
+        "language": [
+          {
+            "title": {
+              "en": "English language",
+              "fi": "Englannin kieli",
+              "sv": "engelska",
+              "und": "Englannin kieli"
+            },
+            "identifier": "http://lexvo.org/id/iso639-3/eng"
+          }
+        ],
+        "harvested": false,
+        "publisher": {
+          "name": {
+            "en": "Ministry of Education and Culture, Finland",
+            "fi": "Opetus- ja kulttuuriministeriö"
+          }
+        },
+        "identifier": "urn:nbn:fi:att:data-catalog-dft",
+        "access_rights": {
+          "license": [
+            {
+              "title": {
+                "en": "Creative Commons CC0 1.0 Universal (CC0 1.0) Public Domain Dedication",
+                "fi": "Creative Commons Yleismaailmallinen (CC0 1.0) Public Domain -lausuma",
+                "und": "Creative Commons Yleismaailmallinen (CC0 1.0) Public Domain -lausuma"
+              },
+              "identifier": "http://uri.suomi.fi/codelist/fairdata/license/code/CC0-1.0"
+            }
+          ],
+          "access_type": [
+            {
+              "identifier": "http://uri.suomi.fi/codelist/fairdata/access_type/code/open",
+              "pref_label": {
+                "en": "Open",
+                "fi": "Avoin",
+                "und": "Avoin"
+              }
+            }
+          ],
+          "description": {
+            "en": "Contains metadata about draft datasets. Datasets in this catalog cannot be published.",
+            "fi": "Sisältää kuvailutietoja luonnostilassa olevista tutkimusaineistoista. Tutkimusaineistoja ei pysty julkaisemaan."
+          }
+        },
+        "dataset_versioning": false,
+        "research_dataset_schema": "dft"
+      }
 }]

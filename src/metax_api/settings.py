@@ -524,7 +524,7 @@ if not executing_in_travis:
 if executing_in_travis:
     ELASTICSEARCH = {
         'HOSTS': ['metax.demo.fairdata.fi/es'],
-        'USE_SSL': True,
+        'USE_SSL': False,
         'ALWAYS_RELOAD_REFERENCE_DATA_ON_RESTART': True,
     }
 else:

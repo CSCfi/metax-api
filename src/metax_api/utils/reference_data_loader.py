@@ -6,7 +6,7 @@
 # :license: MIT
 
 import logging
-from elasticsearch import Elasticsearch, Transport
+from elasticsearch import Elasticsearch # , Transport
 from elasticsearch.helpers import scan
 from django.conf import settings as django_settings
 
@@ -80,7 +80,7 @@ class ReferenceDataLoader():
         es = Elasticsearch(hosts, **connection_params)
 
         #### my stuff Allows to determine which HTTP request method to use
-        tr = Transport([{'host': hosts[0].split('/es')[0]}], **connection_params, timeout=30)
+        # tr = Transport([{'host': hosts[0].split('/es')[0]}], **connection_params, timeout=30)
 
         reference_data = {}
         print('----', es.indices.get_mapping().keys())
@@ -93,20 +93,20 @@ class ReferenceDataLoader():
             #### original --->
             # a cumbersome way to fetch the types, but supposedly the only way because nginx restricts ES usage
             # if local elasticsearch is not used.
-            # aggr_types = es.search(
-            #     index=index_name,
-            #     body={"aggs": { "types": {"terms": {"field": "type", "size": 30}}}},
-            #     scroll='1m',
-            #     filter_path='aggregations',
-            #     _source='type'
-            # )
+            aggr_types = es.search(
+                index=index_name,
+                body={"aggs": { "types": {"terms": {"field": "type", "size": 30}}}},
+                scroll='1m',
+                filter_path='aggregations',
+                _source='type'
+            )
             #### <--- original
 
             #### my stuff ---->
-            body = {"aggs": { "types": {"terms": {"field": "type", "size": 30}}}}
-            aggr_types = tr.perform_request(method='GET', url=f'/es/{index_name}/_search',
-                params={'filter_path': 'aggregations', 'scroll': '1m'}, body=body)
-            print('------buckets', aggr_types['aggregations']['types']['buckets'])
+            # body = {"aggs": { "types": {"terms": {"field": "type", "size": 30}}}}
+            # aggr_types = tr.perform_request(method='GET', url=f'/es/{index_name}/_search',
+            #     params={'filter_path': 'aggregations', 'scroll': '1m'}, body=body)
+            # print('------buckets', aggr_types['aggregations']['types']['buckets'])
             #### <---- my stuff
 
             if index_name == 'organization_data':
@@ -121,12 +121,12 @@ class ReferenceDataLoader():
                 # be changed after all envs is using the new version.
 
                 #### original --->
-                # all_rows = scan(
-                #     es,
-                #     query={'query': {'wildcard': {'id': {'value': f'{type_name}*'}}}},
-                #     index=index_name,
-                #     doc_type = type_name
-                # )
+                all_rows = scan(
+                    es,
+                    query={'query': {'wildcard': {'id': {'value': f'{type_name}*'}}}},
+                    index=index_name,
+                    doc_type=type_name
+                )
                 #### <--- original
 
                 #### my stuff ---->
@@ -137,13 +137,13 @@ class ReferenceDataLoader():
                 #     scroll = '5m', # time value for search
                 # )
 
-                body = {'query': {'wildcard': {'id': {'value': f'{type_name}*'}}}}
-                if index_name == 'organization_data':
-                    body = {"query": {"wildcard": {"type": {"value": "organization"}}}}
-                resp = tr.perform_request(method='GET', url=f'/es/{index_name}/_search',
-                    params={'scroll': '1m', 'size': '10000'}, body=body)
+                # body = {'query': {'wildcard': {'id': {'value': f'{type_name}*'}}}}
+                # if index_name == 'organization_data':
+                #     body = {"query": {"wildcard": {"type": {"value": "organization"}}}}
+                # resp = tr.perform_request(method='GET', url=f'/es/{index_name}/_search',
+                #     params={'scroll': '1m', 'size': '10000'}, body=body)
 
-                scroll_id = resp['_scroll_id']
+                # scroll_id = resp['_scroll_id']
 
                 # This method SEEMS to accept only GET from elasticsearch side but python wrapper sends
                 # something else:
@@ -161,19 +161,21 @@ class ReferenceDataLoader():
                 # )
                 # params={'scroll':'5m'},
 
-                all_rows = tr.perform_request(method='GET', url=f'/es/_search/scroll',  body={"scroll" : "1m", 'scroll_id': scroll_id})
+                # all_rows = tr.perform_request(method='GET', url=f'/es/_search/scroll',
+                #       body={"scroll": "1m", 'scroll_id': scroll_id})
 
-                i = 0
-                print('----len------', all_rows['hits']['total']['value'])
+                # i = 0
+                # print('----len------', all_rows['hits']['total']['value'])
+                # for row in all_rows['hits']['hits']:
                 #### <---- my stuff
 
-                for row in all_rows['hits']['hits']:
+                for row in all_rows:
                     #
                     # form entry that will be placed into cache
                     #
-                    if i <= 5:
-                        print('---', row)
-                    i += 1
+                    # if i <= 5:
+                    #     print('---', row)
+                    # i += 1
                     try:
                         # should always be present
                         entry = { 'uri': row['_source']['uri'] }

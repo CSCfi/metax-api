@@ -237,7 +237,7 @@ if not os.getenv('TRAVIS', None):
 
 if executing_in_test_case or executing_in_travis:
     SERVER_DOMAIN_NAME = 'not set' # 'metax.demo.fairdata.fi' # 'metax.fd-test.csc.fi'
-    AUTH_SERVER_LOGOUT_URL = 'not set' # 'https://metax.demo.fairdata.fi/idp/profile/Logout' # 'https://metax.fd-test.csc.fi/idp/profile/Logout'
+    AUTH_SERVER_LOGOUT_URL = 'not set' # 'https://metax.fd-test.csc.fi/idp/profile/Logout'
 else:
     SERVER_DOMAIN_NAME = app_config_dict['SERVER_DOMAIN_NAME']
     AUTH_SERVER_LOGOUT_URL = app_config_dict['AUTH_SERVER_LOGOUT_URL']
@@ -523,7 +523,7 @@ if not executing_in_travis:
 
 if executing_in_test_case or executing_in_travis:
     ELASTICSEARCH = {
-        'HOSTS': ['metax.fd-test.csc.fi/es'],
+        'HOSTS': ['metax.fd-test.csc.fi/es'], # ['127.0.0.1']
         'USE_SSL': True,
         'ALWAYS_RELOAD_REFERENCE_DATA_ON_RESTART': False,
     }

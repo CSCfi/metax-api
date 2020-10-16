@@ -6,7 +6,8 @@
 # :license: MIT
 
 import logging
-
+from elasticsearch import Elasticsearch, Transport
+from elasticsearch.helpers import scan
 from django.conf import settings as django_settings
 
 from .utils import executing_test_case
@@ -72,39 +73,107 @@ class ReferenceDataLoader():
         if not isinstance(settings, dict):
             settings = settings.ELASTICSEARCH
 
+        hosts = settings.get('HOSTS')
         connection_params = cls.get_connection_parameters(settings)
-        esclient, scan = cls.get_es_imports(settings['HOSTS'], connection_params)
+
+        #### original
+        es = Elasticsearch(hosts, **connection_params)
+
+        #### my stuff Allows to determine which HTTP request method to use
+        tr = Transport([{'host': hosts[0].split('/es')[0]}], **connection_params, timeout=30)
 
         reference_data = {}
-        for index_name in esclient.indices.get_mapping().keys():
+        print('----', es.indices.get_mapping().keys())
+
+        for index_name in es.indices.get_mapping().keys():
+            print('------Index name', index_name)
+
             reference_data[index_name] = {}
 
+            #### original --->
             # a cumbersome way to fetch the types, but supposedly the only way because nginx restricts ES usage
             # if local elasticsearch is not used.
-            aggr_types = esclient.search(
-                index=index_name,
-                body={"aggs": { "types": {"terms": {"field": "type", "size": 30}}}},
-                filter_path='aggregations',
-                _source='type',
-                scroll='1m'
-            )
+            # aggr_types = es.search(
+            #     index=index_name,
+            #     body={"aggs": { "types": {"terms": {"field": "type", "size": 30}}}},
+            #     scroll='1m',
+            #     filter_path='aggregations',
+            #     _source='type'
+            # )
+            #### <--- original
+
+            #### my stuff ---->
+            body = {"aggs": { "types": {"terms": {"field": "type", "size": 30}}}}
+            aggr_types = tr.perform_request(method='GET', url=f'/es/{index_name}/_search',
+                params={'filter_path': 'aggregations', 'scroll': '1m'}, body=body)
+            print('------buckets', aggr_types['aggregations']['types']['buckets'])
+            #### <---- my stuff
+
+            if index_name == 'organization_data':
+                print('--------aggr types', aggr_types)
 
             for type_name in [ b['key'] for b in aggr_types['aggregations']['types']['buckets'] ]:
+                print('---Type_name', type_name)
+
                 reference_data[index_name][type_name] = []
                 # must use wildcard query here because organization_data does not have their 'type'
                 # field indexed in the old 5.8 version.. This is fixed in the new ES cluster so this could
                 # be changed after all envs is using the new version.
-                all_rows = scan(
-                    esclient,
-                    query={'query': {'wildcard': {'id': {'value': f'{type_name}*'}}}},
-                    index=index_name
-                )
-                for row in all_rows:
 
+                #### original --->
+                # all_rows = scan(
+                #     es,
+                #     query={'query': {'wildcard': {'id': {'value': f'{type_name}*'}}}},
+                #     index=index_name,
+                #     doc_type = type_name
+                # )
+                #### <--- original
+
+                #### my stuff ---->
+                # This sends HTTP POST and does work if will adjust nginx.conf
+                # resp = es.search(
+                #     index = index_name,
+                #     body = {'query': {'wildcard': {'id': {'value': f'{type_name}*'}}}},
+                #     scroll = '5m', # time value for search
+                # )
+
+                body = {'query': {'wildcard': {'id': {'value': f'{type_name}*'}}}}
+                if index_name == 'organization_data':
+                    body = {"query": {"wildcard": {"type": {"value": "organization"}}}}
+                resp = tr.perform_request(method='GET', url=f'/es/{index_name}/_search',
+                    params={'scroll': '1m', 'size': '10000'}, body=body)
+
+                scroll_id = resp['_scroll_id']
+
+                # This method SEEMS to accept only GET from elasticsearch side but python wrapper sends
+                # something else:
+                # elasticsearch.exceptions.TransportError: TransportError(405, 'Incorrect HTTP method for
+                # uri [/_search/scroll and method [POST], allowed: [GET, PUT, DELETE]',
+                # 'Incorrect HTTP method for uri [/_search/scroll] and method [POST], allowed: [GET, PUT, DELETE]')
+
+                # elasticsearch.exceptions.TransportError: TransportError(405, 'Incorrect HTTP method for
+                # uri [/_search/scroll] and method [PUT], allowed: [GET, POST, DELETE]',
+                # 'Incorrect HTTP method for uri [/_search/scroll] and method [PUT], allowed: [GET, POST, DELETE]')
+                # This is same problem why scan doesn't work.
+                # all_rows = es.scroll(
+                #     scroll_id = scroll_id,
+                #     scroll = '1s', # time value for search
+                # )
+                # params={'scroll':'5m'},
+
+                all_rows = tr.perform_request(method='GET', url=f'/es/_search/scroll',  body={"scroll" : "1m", 'scroll_id': scroll_id})
+
+                i = 0
+                print('----len------', all_rows['hits']['total']['value'])
+                #### <---- my stuff
+
+                for row in all_rows['hits']['hits']:
                     #
                     # form entry that will be placed into cache
                     #
-
+                    if i <= 5:
+                        print('---', row)
+                    i += 1
                     try:
                         # should always be present
                         entry = { 'uri': row['_source']['uri'] }
@@ -180,18 +249,18 @@ class ReferenceDataLoader():
         issue raises. It might be also good to leave this function here and utilize it on
         coming ES updates as well.
         """
-        from elasticsearch5 import Elasticsearch as es5
-        from elasticsearch5.helpers import scan as scan5
+        # from elasticsearch5 import Elasticsearch as es5
+        # from elasticsearch5.helpers import scan as scan5
 
-        es = es5(hosts, **conn_params)
-        scan = scan5
+        # es = es5(hosts, **conn_params)
+        # scan = scan5
 
-        # from ES 7.0 onwards, total attribute changed from int to object
-        if isinstance(es.search(index='reference_data')['hits']['total'], dict):
-            from elasticsearch import Elasticsearch as es7
-            from elasticsearch.helpers import scan as scan7
+        # # from ES 7.0 onwards, total attribute changed from int to object
+        # if isinstance(es.search(index='reference_data')['hits']['total'], dict):
+        from elasticsearch import Elasticsearch as es7
+        from elasticsearch.helpers import scan as scan7
 
-            es = es7(hosts, **conn_params)
-            scan = scan7
+        es = es7(hosts, **conn_params)
+        scan = scan7
 
         return es, scan

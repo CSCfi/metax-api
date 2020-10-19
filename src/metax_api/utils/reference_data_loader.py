@@ -76,10 +76,10 @@ class ReferenceDataLoader():
         hosts = settings.get('HOSTS')
         connection_params = cls.get_connection_parameters(settings)
 
-        #### original
+        # original
         es = Elasticsearch(hosts, **connection_params)
 
-        #### my stuff Allows to determine which HTTP request method to use
+        # my stuff Allows to determine which HTTP request method to use
         # tr = Transport([{'host': hosts[0].split('/es')[0]}], **connection_params, timeout=30)
 
         reference_data = {}

@@ -90,7 +90,7 @@ class ReferenceDataLoader():
 
             reference_data[index_name] = {}
 
-            #### original --->
+            # original --->
             # a cumbersome way to fetch the types, but supposedly the only way because nginx restricts ES usage
             # if local elasticsearch is not used.
             aggr_types = es.search(
@@ -100,14 +100,14 @@ class ReferenceDataLoader():
                 filter_path='aggregations',
                 _source='type'
             )
-            #### <--- original
+            # <--- original
 
-            #### my stuff ---->
+            # my stuff ---->
             # body = {"aggs": { "types": {"terms": {"field": "type", "size": 30}}}}
             # aggr_types = tr.perform_request(method='GET', url=f'/es/{index_name}/_search',
             #     params={'filter_path': 'aggregations', 'scroll': '1m'}, body=body)
             # print('------buckets', aggr_types['aggregations']['types']['buckets'])
-            #### <---- my stuff
+            # <---- my stuff
 
             if index_name == 'organization_data':
                 print('--------aggr types', aggr_types)
@@ -120,16 +120,16 @@ class ReferenceDataLoader():
                 # field indexed in the old 5.8 version.. This is fixed in the new ES cluster so this could
                 # be changed after all envs is using the new version.
 
-                #### original --->
+                # original --->
                 all_rows = scan(
                     es,
                     query={'query': {'wildcard': {'id': {'value': f'{type_name}*'}}}},
                     index=index_name,
                     doc_type=type_name
                 )
-                #### <--- original
+                # <--- original
 
-                #### my stuff ---->
+                # my stuff ---->
                 # This sends HTTP POST and does work if will adjust nginx.conf
                 # resp = es.search(
                 #     index = index_name,
@@ -167,7 +167,7 @@ class ReferenceDataLoader():
                 # i = 0
                 # print('----len------', all_rows['hits']['total']['value'])
                 # for row in all_rows['hits']['hits']:
-                #### <---- my stuff
+                # <---- my stuff
 
                 for row in all_rows:
                     #

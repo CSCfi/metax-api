@@ -146,6 +146,13 @@ if executing_in_test_case or executing_in_travis:
                 "deprecated_datasets_cumulative": { "use": ["all"] },
                 "organization_datasets_cumulative": { "use": ["all"] },
                 "unused_files": { "use": ["all"] },
+            },
+            "elasticsearchs": {
+                "map_refdata": {
+                    "use": [
+                        "all"
+                    ]
+                }
             }
         }
     }

@@ -589,7 +589,7 @@ class CatalogRecordDraftsOfPublished(CatalogRecordApiWriteCommon):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, response.data)
         self.assertTrue('The origin dataset of this draft is deprecated' in response.data['detail'][0], response.data)
 
-    def test_delete_published_dataset_with_an_umerged_draft(self):
+    def test_delete_published_dataset_with_an_unmerged_draft(self):
         """
         Delete published dataset that has an unmerged draft
         """

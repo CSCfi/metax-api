@@ -125,27 +125,6 @@ class FileApiReadGetRelatedDatasets(FileApiReadCommon):
         self._assert_results_length(response, 2) # Only datasets 1 and 2 have files
         self.assertEqual(type(response.data), list, type(response.data)) # no dict keys
 
-    def test_return_is_pids_not_urns(self):
-        """
-        Endpoint should return pids, not urns
-        """
-        dataset_identifiers = ["cr955e904-e3dd-4d7e-99f1-3fed446f96d1",
-                    2,
-                    3,
-                    "cr955e904-e3dd-4d7e-99f1-3fed446f96d5"]
-
-        # Check that keys=datasets returns dataset pids as keys and not urns
-        response = self.client.post('/rest/v2/files/datasets?keys=datasets', dataset_identifiers, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
-        for pid in response.data.keys():
-            self.assertEqual('urn:' not in pid, True, response.data)
-
-        # Check that keys=files returns dataset pids and not urns
-        response = self.client.post('/rest/v2/files/datasets?keys=files', ["pid:urn:1"], format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
-        for pid in response.data.values():
-            self.assertEqual('urn:' not in pid, True, response.data)
-
     def test_get_detailed_related_datasets_ok_1(self):
         """
         File identifiers listed below should belong to 3 datasets

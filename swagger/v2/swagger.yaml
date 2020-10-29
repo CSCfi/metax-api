@@ -1001,7 +1001,7 @@ paths:
           type: string
         - name: api_version
           in: query
-          description: returns datasets that can be edited with certain api version. Possible values are 1 and 2
+          description: Returns datasets that can be edited with certain api version. Possible values are 1 and 2
           type: integer
           required: false
         - $ref: "#/parameters/include_user_metadata"
@@ -1166,6 +1166,16 @@ paths:
           description: Successful operation, returns a list of all unique dataset preferred identifiers.
       tags:
         - Dataset API
+  /rest/datasets/list:
+    post:
+      summary: List datasets corresponding IDs or identifiers given in body
+      parameters:
+        - name: body
+          in: body
+          description: A list of catalog record IDs (integers) or identifiers (strings). Returns datasets corresponding queried IDs.
+          required: true
+          schema:
+            $ref: '#/definitions/StringList'
   /rest/v2/datasets/{PID}:
     get:
       summary: Get dataset metadata.

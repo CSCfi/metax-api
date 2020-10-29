@@ -1151,6 +1151,16 @@ paths:
           description: Successful operation, returns a list of all unique dataset preferred identifiers.
       tags:
         - Dataset API
+  /rest/datasets/list:
+    post:
+      summary: List datasets corresponding IDs or identifiers given in body
+      parameters:
+        - name: body
+          in: body
+          description: A list of catalog record IDs (integers) or identifiers (strings). Returns datasets corresponding queried IDs.
+          required: true
+          schema:
+            $ref: '#/definitions/StringList'
   /rest/datasets/{PID}:
     get:
       summary: Get dataset metadata

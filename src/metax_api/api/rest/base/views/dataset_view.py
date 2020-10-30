@@ -336,7 +336,7 @@ class DatasetViewSet(CommonViewSet):
 
         # In metax empty response with identifiers is returned as 404
         # but with ids 200 and empty list.
-        # Should that 'feature' be ignored in this endpoint??
+        # This 'feature' is ignored in this endpoint.
         if not resp.data['results']:
             raise Http404
         return resp

@@ -196,9 +196,6 @@ class CommonViewSet(ModelViewSet):
         else:
             queryset = queryset.select_related(*self.select_related)
 
-        # why we are not returning not found here??
-        # if not queryset:
-        #     raise Http404
         return queryset
 
     def get_object(self, search_params=None):

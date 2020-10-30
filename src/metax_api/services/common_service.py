@@ -16,7 +16,7 @@ from rest_framework.request import Request
 from rest_framework.serializers import ValidationError
 from metax_api.exceptions import Http400, Http412
 from metax_api.utils import parse_timestamp_string_to_tz_aware_datetime, get_tz_aware_now_without_micros
-
+from metax_api.models import File, CatalogRecord as cr
 _logger = logging.getLogger(__name__)
 
 
@@ -486,10 +486,8 @@ class CommonService():
             return identifiers
 
         if params in ['files', 'noparams']:
-            from metax_api.models import File
             identifiers = [ id for id in File.objects.filter(identifier__in=identifiers).values_list('id', flat=True) ]
         else:
-            from metax_api.models import CatalogRecord as cr
             identifiers = [ id for id in cr.objects.filter(identifier__in=identifiers).values_list('id', flat=True) ]
 
         if not identifiers:

@@ -996,7 +996,7 @@ paths:
           type: string
         - name: api_version
           in: query
-          description: returns datasets that can be edited with certain api version. Possible values are 1 and 2
+          description: Returns datasets that can be edited with certain api version. Possible values are 1 and 2
           type: integer
           required: false
         - $ref: "#/parameters/fields"
@@ -1161,6 +1161,18 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/StringList'
+        - $ref: "#/parameters/fields"
+      responses:
+        "200":
+          description: Successful operation, returns a list of queried datasets.
+        "400":
+          description: Received empty list of identifiers
+        '403':
+          description: Forbidden. Must have permission for resource
+        '404':
+          description: Not found
+      tags:
+        - Dataset API
   /rest/datasets/{PID}:
     get:
       summary: Get dataset metadata

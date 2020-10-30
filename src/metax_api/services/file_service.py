@@ -225,7 +225,7 @@ class FileService(CommonService, ReferenceDataMixin):
         """
         _logger.info('Retrieving detailed list of %s' % params)
 
-        ids = cls._identifiers_to_ids(identifiers, params)
+        ids = cls.identifiers_to_ids(identifiers, params)
 
         _logger.info('Searching return for the following %s (printing first 10):\n%s'
                      % (params, '\n'.join(str(id) for id in ids[:10])))
@@ -335,7 +335,7 @@ class FileService(CommonService, ReferenceDataMixin):
         """
         _logger.info('Begin bulk delete files')
 
-        file_ids = cls._identifiers_to_ids(file_identifiers, 'noparams')
+        file_ids = cls.identifiers_to_ids(file_identifiers, 'noparams')
 
         deleted_files_count, project_identifier = cls._mark_files_as_deleted(file_ids)
 
@@ -382,31 +382,31 @@ class FileService(CommonService, ReferenceDataMixin):
 
         return Response({ 'deleted_files_count': deleted_files_count }, status=status.HTTP_200_OK)
 
-    @staticmethod
-    def _identifiers_to_ids(identifiers, params):
-        """
-        In case identifiers is identifiers (strings), which they probably are in real use,
-        do a query to get a list of pk's instead, since they will be used quite a few times.
-        """
-        if not isinstance(identifiers, list):
-            raise Http400('Received identifiers is not a list')
-        elif not identifiers:
-            _logger.info('Received empty list of identifiers. Aborting')
-            raise Http400('Received empty list of identifiers')
-        elif isinstance(identifiers[0], int):
-            return identifiers
-        else:
-            if params in ['files', 'noparams']:
-                ids = [ id for id in File.objects.filter(identifier__in=identifiers).values_list('id', flat=True) ]
-                if not ids:
-                    raise Http404
-                return ids
-            else:
-                cr = CatalogRecord
-                ids = [ id for id in cr.objects.filter(identifier__in=identifiers).values_list('id', flat=True) ]
-                if not ids:
-                    raise Http404
-                return ids
+    # @staticmethod
+    # def _identifiers_to_ids(identifiers, params):
+    #     """
+    #     In case identifiers are identifiers (strings), which they probably are in real use,
+    #     do a query to get a list of pk's instead, since they will be used quite a few times.
+    #     """
+    #     if not isinstance(identifiers, list):
+    #         raise Http400('Received identifiers is not a list')
+    #     elif not identifiers:
+    #         _logger.info('Received empty list of identifiers. Aborting')
+    #         raise Http400('Received empty list of identifiers')
+    #     elif isinstance(identifiers[0], int):
+    #         return identifiers
+    #     else:
+    #         if params in ['files', 'noparams']:
+    #             ids = [ id for id in File.objects.filter(identifier__in=identifiers).values_list('id', flat=True) ]
+    #             if not ids:
+    #                 raise Http404
+    #             return ids
+    #         else:
+    #             cr = CatalogRecord
+    #             ids = [ id for id in cr.objects.filter(identifier__in=identifiers).values_list('id', flat=True) ]
+    #             if not ids:
+    #                 raise Http404
+    #             return ids
 
     @staticmethod
     def _mark_files_as_deleted(file_ids):

@@ -9,6 +9,7 @@ import logging
 from json import load as json_load
 
 from django.db.models import Q
+from django.http import Http404
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.request import Request
@@ -469,3 +470,28 @@ class CommonService():
                 filter_obj['q_filters'].append(flter)
             else:
                 filter_obj['q_filters'] = [flter]
+
+    @staticmethod
+    def identifiers_to_ids(identifiers, params=None):
+        """
+        In case identifiers are identifiers (strings), which they probably are in real use,
+        do a query to get a list of pk's instead, since they will be used quite a few times.
+        """
+        if not isinstance(identifiers, list):
+            raise Http400('Received identifiers is not a list')
+        elif not identifiers:
+            _logger.info('Received empty list of identifiers. Aborting')
+            raise Http400('Received empty list of identifiers')
+        elif all(isinstance(x, int) for x in identifiers):
+            return identifiers
+
+        if params in ['files', 'noparams']:
+            from metax_api.models import File
+            identifiers = [ id for id in File.objects.filter(identifier__in=identifiers).values_list('id', flat=True) ]
+        else:
+            from metax_api.models import CatalogRecord as cr
+            identifiers = [ id for id in cr.objects.filter(identifier__in=identifiers).values_list('id', flat=True) ]
+
+        if not identifiers:
+            raise Http404
+        return identifiers

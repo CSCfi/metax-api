@@ -519,6 +519,8 @@ paths:
           description: A list of pids. if the files were not found to belong to any datasets, or dataset didn't contain any files, an empty list is returned
         '403':
           description: Forbidden. Must have permission for resource
+        '404':
+          description: Files given in the list not found
       tags:
         - File API
   /rest/files/restore:
@@ -994,7 +996,7 @@ paths:
           type: string
         - name: api_version
           in: query
-          description: Returns datasets that can be edited with certain api version. Possible values are 1 and 2
+          description: returns datasets that can be edited with certain api version. Possible values are 1 and 2
           type: integer
           required: false
         - $ref: "#/parameters/fields"
@@ -1147,26 +1149,6 @@ paths:
       responses:
         "200":
           description: Successful operation, returns a list of all unique dataset preferred identifiers.
-      tags:
-        - Dataset API
-  /rest/datasets/list:
-    post:
-      summary: List datasets corresponding IDs or identifiers given in body
-      parameters:
-        - name: body
-          in: body
-          description: A list of dataset IDs (integers) OR a list of datasets identifiers (strings). Returns datasets corresponding queried IDs.
-          required: true
-          schema:
-            $ref: '#/definitions/StringList'
-        - $ref: "#/parameters/fields"
-      responses:
-        "200":
-          description: Successful operation, returns a list of queried datasets.
-        "400":
-          description: Received empty list of identifiers
-        '403':
-          description: Forbidden. Must have permission for resource
       tags:
         - Dataset API
   /rest/datasets/{PID}:
@@ -1659,19 +1641,6 @@ paths:
           description: Successful operation, returns information about the new dataset version.
       tags:
         - Dataset RPC
-  /rpc/datasets/flush_records:
-    post:
-      summary: Permanently DELETES all datasets, files and directories metadata.
-      description: Deletes all datasets, files and directories metadata. This api is not used in production and can be used only by metax sercice user.
-      responses:
-        '204':
-          description: Successful operation
-        '400':
-          description: API currently allowed only in test environments.
-        '403':
-          description: Forbidden. Must have permission for resource
-      tags:
-        - Dataset RPC
   /rpc/statistics/count_datasets:
     get:
       summary: Get the total number of datasets and file sizes.
@@ -1736,69 +1705,6 @@ paths:
           description: Parameters contained errors, response includes details
       tags:
         - Statistics RPC
-  /rpc/statistics/catalog_datasets_cumulative:
-    get:
-      summary: Get cumulative list of datacatalog information in given interval.
-      description: Lists datacatalogs and groups their content by access type and by month. Each month contains how many datasets have been added and total size of files. These are calculated both for current month and cumulatively from from_date.
-      parameters:
-        - $ref: "#/parameters/from_date"
-        - $ref: "#/parameters/to_date"
-        - $ref: "#/parameters/data_catalog_filter"
-      responses:
-        '200':
-          description: successful operation, return json of requested data catalogs.
-          schema:
-            $ref: "#/examples/catalog_datasets_cumulative"
-        '400':
-          description: required parameters missing.
-      tags:
-        - Statistics RPC
-  /rpc/statistics/deprecated_datasets_cumulative:
-    get:
-      summary: Get cumulative list of deprecated dataset information in given interval.
-      description: Retrieve dataset count per month and monthly cumulative for deprecated datasets.
-      parameters:
-        - $ref: "#/parameters/from_date"
-        - $ref: "#/parameters/to_date"
-      responses:
-        '200':
-          description: successful operation.
-          schema:
-            $ref: "#/examples/deprecated_datasets_cumulative"
-      tags:
-        - Statistics RPC
-  /rpc/statistics/end_user_datasets_cumulative:
-    get:
-      summary: Get cumulative list of dataset information in given interval added by end users.
-      description: Retrieve dataset count per month and monthly cumulative for datasets which have been created by end users using End User API.
-      parameters:
-        - $ref: "#/parameters/from_date"
-        - $ref: "#/parameters/to_date"
-      responses:
-        '200':
-          description: successful operation.
-          schema:
-            $ref: "#/examples/end_user_datasets_cumulative"
-        '400':
-          description: required parameters missing.
-      tags:
-        - Statistics RPC
-  /rpc/statistics/harvested_datasets_cumulative:
-    get:
-      summary: Get cumulative list of harvested dataset information in given interval.
-      description: For harvested datasets, retrieve dataset count per month and monthly cumulative, and grouped by access_type.
-      parameters:
-        - $ref: "#/parameters/from_date"
-        - $ref: "#/parameters/to_date"
-      responses:
-        '200':
-          description: successful operation.
-          schema:
-            $ref: "#/examples/harvested_datasets_cumulative"
-        '400':
-          description: required parameters missing.
-      tags:
-        - Statistics RPC
   /rpc/statistics/organization_datasets_cumulative:
     get:
       summary: Get cumulative list of dataset information in given interval added by organizations.
@@ -1814,17 +1720,6 @@ paths:
             $ref: "#/examples/organization_datasets_cumulative"
         '400':
           description: Required parameters missing.
-      tags:
-        - Statistics RPC
-  /rpc/statistics/unused_files:
-    get:
-      summary: Get files that are not part of any datasets.
-      description: Retrieving total counts of files and project identifiers which are not part of any datasets.
-      responses:
-        '200':
-          description: successful operation.
-          schema:
-            $ref: "#/examples/unused_files"
       tags:
         - Statistics RPC
   /rpc/files/delete_project:
@@ -1844,23 +1739,7 @@ paths:
           description: Unsuccesful operation when project identifier is missing.
       tags:
         - File RPC
-  /rpc/files/flush_project:
-    post:
-      summary: Permanently DELETES an entire project's files and directories.
-      description: Permanently DELETES an entire project's files and directories. Does not check file association with datasets! Not meant for active production use!!.
-      parameters:
-        - name: identifier
-          in: query
-          description: Identifier of the catalog record to be fixed.
-          required: true
-          type: string
-      responses:
-        '200':
-          description: Successful operation, returns information about the new dataset version.
-        '400':
-          description: API currently allowed only in test environments.
-      tags:
-        - File RPC
+
 
 parameters:
   dryrun:
@@ -2044,34 +1923,6 @@ examples:
     type: array
     items:
       $ref: '#/definitions/CumulativeElementWFiles'
-  catalog_datasets_cumulative:
-    type: object
-    properties:
-      identifier:
-        type: object
-        properties:
-          access_type:
-            type: array
-            items:
-              $ref: '#/definitions/CumulativeElementWFiles'
-  deprecated_datasets_cumulative:
-    type: array
-    items:
-      $ref: '#/definitions/CumulativeElementWOFiles'
-  end_user_datasets_cumulative:
-    type: array
-    items:
-      $ref: '#/definitions/CumulativeElementWOFiles'
-  harvested_datasets_cumulative:
-    type: object
-    properties:
-      identifier:
-        type: object
-        properties:
-          access_type:
-            type: array
-            items:
-              $ref: '#/definitions/CumulativeElementWOFiles'
   organization_datasets_cumulative:
     type: object
     properties:
@@ -2082,12 +1933,3 @@ examples:
             type: array
             items:
               $ref: '#/definitions/CumulativeElementWFiles'
-  unused_files:
-    type: array
-    items:
-      type: object
-      properties:
-        count:
-          type: integer
-        project_identifier:
-          type: string

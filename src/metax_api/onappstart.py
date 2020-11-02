@@ -7,7 +7,6 @@
 
 import logging
 from os import makedirs, getpid
-from errno import FileExistsError
 from shutil import rmtree
 from time import sleep
 from typing import Any

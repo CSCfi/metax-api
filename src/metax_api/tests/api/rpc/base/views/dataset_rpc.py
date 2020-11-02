@@ -597,3 +597,23 @@ class FlushDatasetsTests(APITestCase, TestClassUtils):
         self.assertTrue(CatalogRecord.objects_unfiltered.all())
         self.assertTrue(File.objects_unfiltered.all())
         self.assertTrue(Directory.objects_unfiltered.all())
+
+    def test_flush_service_datasets_ok(self):
+        self._use_http_authorization(username='metax')
+        response = self.client.post('/rpc/datasets/flush_service_records')
+
+        self.assertTrue(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(CatalogRecord.objects_unfiltered.all())
+        self.assertFalse(File.objects_unfiltered.all())
+        self.assertFalse(Directory.objects_unfiltered.all())
+
+        self._use_http_authorization(username='ida', password='test-ida')
+        response = self.client.post('/rpc/datasets/flush_service_records')
+
+        self.assertTrue(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(CatalogRecord.objects_unfiltered.all())
+        self.assertFalse(File.objects_unfiltered.all())
+        self.assertFalse(Directory.objects_unfiltered.all())
+
+
+    # def test_flush_service_datasets_not_ok(self):

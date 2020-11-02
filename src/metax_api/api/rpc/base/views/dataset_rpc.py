@@ -173,8 +173,22 @@ class DatasetRPC(CommonRPC):
         super(CatalogRecord, cr).save(update_fields=['preservation_identifier'])
         DataciteDOIUpdate(cr, cr.preservation_identifier, action)()
 
+    @action(detail=False, methods=['post'], url_path="flush_service_records")
+    def flush_service_records(self, request):
+        """
+        Delete all catalog records created by authorized service.
+        """
+        if django_settings.METAX_ENV == 'production':
+            raise Http400({ 'detail': ['API currently allowed only in test environments'] })
+
+        for f in CatalogRecord.objects_unfiltered.filter(service_created=request.user.username):
+            super(Common, f).delete()
+        _logger.debug('Flushing datasets created by %s' % request.user.username)
+
+        return Response(data=None, status=status.HTTP_204_NO_CONTENT)
+
     @action(detail=False, methods=['post'], url_path="flush_records")
-    def flush_records(self, request): # pragma: no cover
+    def flush_records(self, request):
         """
         Delete all catalog records and files.
         """
@@ -190,6 +204,6 @@ class DatasetRPC(CommonRPC):
         for cr in CatalogRecord.objects_unfiltered.all():
             super(Common, cr).delete()
 
-        _logger.debug('Flushing datasets called by %s' % request.user.username)
+        _logger.debug('Flushing datasets, called by %s' % request.user.username)
 
         return Response(data=None, status=status.HTTP_204_NO_CONTENT)

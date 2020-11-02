@@ -544,3 +544,32 @@ class FixDeprecatedTests(CatalogRecordApiWriteAssignFilesCommon):
         self.assertTrue('/TestExperiment/Directory_2/Group_2/Group_2_deeper' not in rd_dirpaths)
         self.assertTrue('/TestExperiment/Directory_2/Group_2/Group_2_deeper/file_11.txt' not in rd_filepaths)
         self.assertTrue('/TestExperiment/Directory_2/Group_2/Group_2_deeper/file_12.txt' not in rd_filepaths)
+
+
+class FlushDatasetsTests(APITestCase, TestClassUtils):
+    """
+    Tests for permanent delete with flush
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        call_command('loaddata', test_data_file_path, verbosity=0)
+
+    def test_flush_datasets_ok(self):
+        self._use_http_authorization(username='metax')
+        response = self.client.post('/rpc/datasets/flush_records')
+
+        self.assertTrue(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(CatalogRecord.objects_unfiltered.all())
+        self.assertFalse(File.objects_unfiltered.all())
+        self.assertFalse(Directory.objects_unfiltered.all())
+
+    def test_flush_datasets_not_ok(self):
+        self._use_http_authorization(username='ida', password='test-ida')
+        response = self.client.post('/rpc/datasets/flush_records')
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertTrue(CatalogRecord.objects_unfiltered.all())
+        self.assertTrue(File.objects_unfiltered.all())
+        self.assertTrue(Directory.objects_unfiltered.all())

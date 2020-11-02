@@ -5,17 +5,16 @@
 # :author: CSC - IT Center for Science Ltd., Espoo Finland <servicedesk@csc.fi>
 # :license: MIT
 
-from json import dump, load
 import logging
 
 from django.http import Http404
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
-import yaml
 
 from metax_api.exceptions import Http403, Http400
-from metax_api.models import CatalogRecord, Common, DataCatalog, File, Directory
+from metax_api.models import CatalogRecord, Common, DataCatalog
 from metax_api.renderers import XMLRenderer
 from metax_api.services import CatalogRecordService, CommonService as CS, RabbitMQService as rabbitmq
 from .common_view import CommonViewSet
@@ -325,46 +324,7 @@ class DatasetViewSet(CommonViewSet):
 
         return Response(data={}, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['post'], url_path="flush_password")
-    def flush_password(self, request): # pragma: no cover
-        """
-        Set a password for flush api
-        """
-        if request.user.username == 'metax':
-            with open('/home/metax-user/flush_password', 'w') as f:
-                dump(request.data, f)
-        else:
-            raise Http403
-        _logger.debug('FLUSH password set')
-        return Response(data=None, status=status.HTTP_204_NO_CONTENT)
-
     @action(detail=False, methods=['post'], url_path="flush")
-    def flush_records(self, request): # pragma: no cover
-        """
-        Delete all catalog records and files. Requires a password
-        """
-        with open('/home/metax-user/app_config') as app_config:
-            app_config_dict = yaml.load(app_config, Loader=yaml.FullLoader)
-            for host in app_config_dict['ALLOWED_HOSTS']:
-                if 'metax.csc.local' in host or 'metax-test' in host or 'metax-stable' in host:
-
-                    if 'password' in request.data:
-                        with open('/home/metax-user/flush_password', 'rb') as f:
-                            if request.data['password'] == load(f)['password']:
-                                break
-                    raise Http403
-            else:
-                raise Http403
-
-        for f in File.objects_unfiltered.all():
-            super(Common, f).delete()
-
-        for dr in Directory.objects_unfiltered.all():
-            super(Common, dr).delete()
-
-        for f in self.object.objects_unfiltered.all():
-            super(Common, f).delete()
-
-        _logger.debug('FLUSH called by %s' % request.user.username)
-
-        return Response(data=None, status=status.HTTP_204_NO_CONTENT)
+    def flush_records(self, request):  # pragma: no cover
+        # todo remove api when comfortable
+        raise ValidationError({ 'detail': ['API has been moved to RPC API: /rpc/datasets/flush_records'] })

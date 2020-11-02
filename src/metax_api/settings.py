@@ -133,6 +133,7 @@ if executing_in_test_case or executing_in_travis:
                 "publish_dataset": { "use": ["all"] },
                 "create_draft": { "use": ["all"] },
                 "merge_draft": { "use": ["all"] },
+                "flush_records": { "use": ["metax"] }
             },
             "files": {
                 "delete_project": { "use": ["testuser", "metax"] }

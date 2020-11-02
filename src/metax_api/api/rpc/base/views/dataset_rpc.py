@@ -16,7 +16,7 @@ from rest_framework.response import Response
 
 from metax_api.api.rest.base.serializers import CatalogRecordSerializer
 from metax_api.exceptions import Http400, Http403
-from metax_api.models import CatalogRecord
+from metax_api.models import CatalogRecord, File, Directory, Common
 from metax_api.models.catalog_record import DataciteDOIUpdate
 from metax_api.services.datacite_service import DataciteException, DataciteService, convert_cr_to_datacite_cr_json
 from metax_api.utils import generate_doi_identifier, is_metax_generated_doi_identifier
@@ -172,3 +172,24 @@ class DatasetRPC(CommonRPC):
 
         super(CatalogRecord, cr).save(update_fields=['preservation_identifier'])
         DataciteDOIUpdate(cr, cr.preservation_identifier, action)()
+
+    @action(detail=False, methods=['post'], url_path="flush_records")
+    def flush_records(self, request): # pragma: no cover
+        """
+        Delete all catalog records and files.
+        """
+        if django_settings.METAX_ENV == 'production':
+            raise Http400({ 'detail': ['API currently allowed only in test environments'] })
+
+        for f in File.objects_unfiltered.all():
+            super(Common, f).delete()
+
+        for dr in Directory.objects_unfiltered.all():
+            super(Common, dr).delete()
+
+        for cr in CatalogRecord.objects_unfiltered.all():
+            super(Common, cr).delete()
+
+        _logger.debug('Flushing datasets called by %s' % request.user.username)
+
+        return Response(data=None, status=status.HTTP_204_NO_CONTENT)

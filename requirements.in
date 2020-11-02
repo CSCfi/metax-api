@@ -28,4 +28,3 @@ urllib3
 xmltodict               # MIT-license
 pip-tools               # keeping dependencies updated
 traitlets>=4.3.2,<5.0.0 # via ipython, version 5.0+ is Python 3.7+ only
-

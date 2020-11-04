@@ -339,5 +339,8 @@
         },
         "dataset_versioning": false,
         "research_dataset_schema": "dft"
-      }
+      },
+    "catalog_record_services_create": "testuser,api_auth_user,metax",
+    "catalog_record_services_edit": "testuser,api_auth_user,metax",
+    "catalog_record_services_read": "testuser,api_auth_user,metax"
 }]

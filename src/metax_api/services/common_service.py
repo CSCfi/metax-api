@@ -490,6 +490,4 @@ class CommonService():
         else:
             identifiers = [ id for id in cr.objects.filter(identifier__in=identifiers).values_list('id', flat=True) ]
 
-        if not identifiers:
-            raise Http404
         return identifiers

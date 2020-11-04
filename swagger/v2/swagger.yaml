@@ -519,8 +519,6 @@ paths:
           description: A list of preferred_identifiers. if the files were not found to belong to any datasets, an empty list is returned
         '403':
           description: Forbidden. Must have permission for resource
-        '404':
-          description: Files given in the list not found
       tags:
         - File API
   /rest/v2/files/restore:
@@ -1184,8 +1182,6 @@ paths:
           description: Received empty list of identifiers
         '403':
           description: Forbidden. Must have permission for resource
-        '404':
-          description: Not found
       tags:
         - Dataset API
   /rest/v2/datasets/{PID}:

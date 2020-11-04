@@ -75,7 +75,7 @@ class CatalogRecordApiReadBasicTests(CatalogRecordApiReadCommon):
             self.assertEqual(len(response.data['results'][0].keys()), 1)
             self.assertEqual(list(response.data['results'][0].keys()), ['id'])
 
-        # Failing tests
+        # Failing/empty tests
 
         cr_bad_lists = [
             ['something'],
@@ -84,7 +84,8 @@ class CatalogRecordApiReadBasicTests(CatalogRecordApiReadCommon):
 
         for bad_list in cr_bad_lists:
             response = self.client.post('/rest/datasets/list', bad_list, format="json")
-            self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.data['results'], [])
 
         response = self.client.post('/rest/datasets/list', [], format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

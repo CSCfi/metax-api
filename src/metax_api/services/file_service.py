@@ -226,6 +226,8 @@ class FileService(CommonService, ReferenceDataMixin):
         _logger.info('Retrieving detailed list of %s' % params)
 
         ids = cls.identifiers_to_ids(identifiers, params)
+        if not ids:
+            return Response([], status=status.HTTP_200_OK)
 
         _logger.info('Searching return for the following %s (printing first 10):\n%s'
                      % (params, '\n'.join(str(id) for id in ids[:10])))
@@ -336,6 +338,8 @@ class FileService(CommonService, ReferenceDataMixin):
         _logger.info('Begin bulk delete files')
 
         file_ids = cls.identifiers_to_ids(file_identifiers, 'noparams')
+        if not file_ids:
+            raise Http404
 
         deleted_files_count, project_identifier = cls._mark_files_as_deleted(file_ids)
 

@@ -332,14 +332,7 @@ class DatasetViewSet(CommonViewSet):
         """
         ids = self.service_class.identifiers_to_ids(request.data)
         self.queryset_search_params = {'id__in': ids}
-        resp = super(DatasetViewSet, self).list(request)
-
-        # In metax empty response with identifiers is returned as 404
-        # but with ids 200 and empty list.
-        # This 'feature' is ignored in this endpoint.
-        if not resp.data['results']:
-            raise Http404
-        return resp
+        return super(DatasetViewSet, self).list(request)
 
     @action(detail=False, methods=['post'], url_path="flush_password")
     def flush_password(self, request): # pragma: no cover

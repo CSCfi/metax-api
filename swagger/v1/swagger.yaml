@@ -519,8 +519,6 @@ paths:
           description: A list of pids. if the files were not found to belong to any datasets, or dataset didn't contain any files, an empty list is returned
         '403':
           description: Forbidden. Must have permission for resource
-        '404':
-          description: Files given in the list not found
       tags:
         - File API
   /rest/files/restore:
@@ -1157,7 +1155,7 @@ paths:
       parameters:
         - name: body
           in: body
-          description: A list of catalog record IDs (integers) or identifiers (strings). Returns datasets corresponding queried IDs.
+          description: A list of dataset IDs (integers) or identifiers (strings). Returns datasets corresponding queried IDs.
           required: true
           schema:
             $ref: '#/definitions/StringList'
@@ -1169,8 +1167,6 @@ paths:
           description: Received empty list of identifiers
         '403':
           description: Forbidden. Must have permission for resource
-        '404':
-          description: Not found
       tags:
         - Dataset API
   /rest/datasets/{PID}:

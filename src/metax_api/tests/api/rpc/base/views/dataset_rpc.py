@@ -575,21 +575,29 @@ class FlushDatasetsTests(APITestCase, TestClassUtils):
         self.assertTrue(Directory.objects_unfiltered.all())
 
     def test_flush_service_datasets_ok(self):
+        self._use_http_authorization(username='tpas', password='test-tpas')
+        cr_template = self._get_object_from_test_data('catalogrecord')
+        cr_template.pop('id')
+        cr_template.pop('service_created')
+        for i in range(5):
+            r = self.client.post('/rest/datasets', cr_template, format="json")
+            print(r)
+        print(CatalogRecord.objects_unfiltered.filter(service_created='tpas'))
+        exit()
+
+        self._use_http_authorization(username='ida', password='test-ida')
+        for i in range(5):
+            self.client.post('/rest/datasets', self.cr_test_data, format="json")
+
+        response = self.client.post('/rpc/datasets/flush_service_records')
+
+        self.assertTrue(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(CatalogRecord.objects_unfiltered.filter(service_created='ida'))
+        self.assertTrue(CatalogRecord.objects_unfiltered.filter(service_created='metax'))
+
         self._use_http_authorization(username='metax')
         response = self.client.post('/rpc/datasets/flush_service_records')
 
         self.assertTrue(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(CatalogRecord.objects_unfiltered.all())
-        self.assertFalse(File.objects_unfiltered.all())
-        self.assertFalse(Directory.objects_unfiltered.all())
-
-        self._use_http_authorization(username='ida', password='test-ida')
-        response = self.client.post('/rpc/datasets/flush_service_records')
-
-        self.assertTrue(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(CatalogRecord.objects_unfiltered.all())
-        self.assertFalse(File.objects_unfiltered.all())
-        self.assertFalse(Directory.objects_unfiltered.all())
-
-
-    # def test_flush_service_datasets_not_ok(self):
+        self.assertFalse(CatalogRecord.objects_unfiltered.filter(service_created='metax'))
+        self.assertTrue(CatalogRecord.objects_unfiltered.filter(service_created='metax'))

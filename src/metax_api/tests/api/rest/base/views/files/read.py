@@ -208,14 +208,14 @@ class FileApiReadGetRelatedDatasets(FileApiReadCommon):
         cr = self.client.get('/rest/datasets/10', format='json')
         self.assertEqual(cr.status_code, status.HTTP_200_OK, cr.data)
 
-        response = self.client.post('/rest/v2/files/datasets?keys=datasets', [cr.data['identifier']], format='json')
+        response = self.client.post('/rest/files/datasets?keys=datasets', [cr.data['identifier']], format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
         # cr 10 has 2 default files
         for keys, values in response.data.items():
             self.assertEqual(keys == 'cr955e904-e3dd-4d7e-99f1-3fed446f9610', True, response.data)
             self.assertEqual('pid:urn:20' in values, True, response.data)
 
-        response = self.client.post('/rest/v2/files/datasets?keys=files', [testfile['identifier']], format='json')
+        response = self.client.post('/rest/files/datasets?keys=files', [testfile['identifier']], format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
         # file 1 belongs to 3 datasets
         for keys, values in response.data.items():

@@ -1170,7 +1170,7 @@ paths:
       parameters:
         - name: body
           in: body
-          description: A list of catalog record IDs (integers) or identifiers (strings). Returns datasets corresponding queried IDs.
+          description: A list of dataset IDs (integers) OR a list of datasets identifiers (strings). Returns datasets corresponding queried IDs.
           required: true
           schema:
             $ref: '#/definitions/StringList'

@@ -395,16 +395,16 @@ class DatasetViewSet(CommonViewSet):
 
         return Response(data={}, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=["post"], url_path="list")
+    @action(detail=False, methods=['post'], url_path="list")
     def list_datasets(self, request):
         """
         Returns datasets based on list of dataset IDs comming with request body.
         """
         ids = self.service_class.identifiers_to_ids(request.data)
-        self.queryset_search_params = {"id__in": ids}
+        self.queryset_search_params = {'id__in': ids}
         return super(DatasetViewSet, self).list(request)
 
     @action(detail=False, methods=['post'], url_path="flush")
     def flush_records(self, request):  # pragma: no cover
         # todo remove api when comfortable
-        raise ValidationError({ 'detail': ['API has been moved to RPC API: /rpc/datasets/flush_records'] })
+        raise ValidationError({ 'detail': ['Flush operations are not allowed. Contact servicedesk@csc.fi.'] })

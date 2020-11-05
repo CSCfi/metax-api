@@ -190,7 +190,8 @@ class CatalogRecordV2(CatalogRecord):
                 'use API /rpc/v2/datasets/merge_draft'
             )
         elif self.catalog_is_dft():
-            raise Http400('Cannot publish dataset in draft catalog. Please use parameter ?draft for adding a draft dataset')
+            raise Http400('Cannot publish dataset in draft catalog. '
+                          'Please use parameter ?draft for adding a draft dataset')
 
         self.state = self.STATE_PUBLISHED
 

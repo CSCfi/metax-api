@@ -1659,19 +1659,6 @@ paths:
           description: Successful operation, returns information about the new dataset version.
       tags:
         - Dataset RPC
-  /rpc/datasets/flush_records:
-    post:
-      summary: Permanently DELETES all datasets, files and directories metadata.
-      description: Deletes all datasets, files and directories metadata. This api is not used in production and can be used only by metax sercice user.
-      responses:
-        '204':
-          description: Successful operation
-        '400':
-          description: API currently allowed only in test environments.
-        '403':
-          description: Forbidden. Must have permission for resource
-      tags:
-        - Dataset RPC
   /rpc/statistics/count_datasets:
     get:
       summary: Get the total number of datasets and file sizes.

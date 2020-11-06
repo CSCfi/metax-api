@@ -955,7 +955,6 @@ class CatalogRecord(Common):
                 super(Common, self.previous_dataset_version).save()
 
             super(Common, self).delete()
-            return
 
         elif self.state == self.STATE_PUBLISHED:
             if self.has_alternate_records():
@@ -988,6 +987,7 @@ class CatalogRecord(Common):
                 log_args['catalogrecord']['date_modified'] = datetime_to_str(self.date_modified)
 
             self.add_post_request_callable(DelayedLog(**log_args))
+        return self.id
 
     def deprecate(self, timestamp=None):
         self.deprecated = True

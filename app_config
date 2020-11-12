@@ -1,0 +1,439 @@
+SERVER_DOMAIN_NAME: metax.csc.local
+DJANGO_SECRET_KEY: ^pqn=v2i)%!w1oh=r!m_=wo_#w3)(@-#8%q_8&9z@slu+#q3+b
+DEBUG: True
+ALLOWED_HOSTS: [
+    "metax.csc.local",
+    "30.30.30.30"
+]
+ALWAYS_RELOAD_REFERENCE_DATA_ON_RESTART: False
+METAX_ENV: local_development
+
+# url on the auth server where logout button on /secure page will finally redirect the user
+AUTH_SERVER_LOGOUT_URL: https://auth.domain.fi/idp/profile/Logout
+
+# Variables related to database
+METAX_DATABASE: metax_db
+METAX_DATABASE_USER: metax_db_user
+METAX_DATABASE_PASSWORD: YMDLekQMqrVKcs3
+METAX_DATABASE_HOST: 127.0.0.1
+
+# Variables related to elasticsearch
+ELASTICSEARCH:
+  HOSTS: [
+    "127.0.0.1"
+]
+  PORT: 9200
+  USE_SSL: False
+
+# Variables related to redis
+REDIS:
+  PASSWORD: 'cain9Bi9Zaim9phuaiV4siebJe1reiy9Zoi5ziga'
+
+  TEST_DB: 15
+  # when all instances run on localhost, any instance is fine. when
+  # running in other envs, assumption is all instances use identical ports.
+  LOCALHOST_PORT: 6379
+
+  SENTINEL:
+    HOSTS: [
+    [
+        "127.0.0.1",
+        16379
+    ],
+    [
+        "127.0.0.1",
+        16380
+    ],
+    [
+        "127.0.0.1",
+        16381
+    ]
+]
+    SERVICE: 'metax-master'
+
+# Variables related to rabbitmq
+RABBITMQ:
+  HOSTS: [
+    "localhost"
+]
+  PORT: 5672
+
+  USER: metax-user
+  PASSWORD: tai5ceiXlaeRieC6
+  VHOST: metax
+
+  CONSUMERS: [
+    {
+        "is_test_user": true,
+        "name": "testaaja",
+        "password": "testaaja",
+        "permissions": {
+            "conf": "^testaaja-.*$",
+            "read": "^(datasets|testaaja-.*)$",
+            "write": "^testaaja-.*$"
+        },
+        "vhost": "metax"
+    },
+    {
+        "is_test_user": false,
+        "name": "etsin",
+        "password": "test-etsin",
+        "permissions": {
+            "conf": "^etsin-.*$",
+            "read": "^(datasets|etsin-.*)$",
+            "write": "^etsin-.*$"
+        },
+        "vhost": "metax"
+    }
+]
+
+# allowed api auth methods in HTTP Authorization header. to disable End User access
+# altogether, remove "Bearer" from below list.
+ALLOWED_AUTH_METHODS: [
+    "Basic",
+    "Bearer"
+]
+
+# this file does not have to exist, but if it exists, it is looked up from below path.
+ADDITIONAL_USER_PROJECTS_PATH: "/home/metax-user/additional_projects.json"
+
+# Variables related to api credentials
+API_USERS: [
+    {
+        "password": "test-metax",
+        "username": "metax"
+    },
+    {
+        "password": "test-qvain",
+        "username": "qvain"
+    },
+    {
+        "password": "test-ida",
+        "username": "ida"
+    },
+    {
+        "password": "test-tpas",
+        "username": "tpas"
+    },
+    {
+        "password": "test-etsin",
+        "username": "etsin"
+    },
+    {
+        "password": "test-fds",
+        "username": "fds"
+    }
+]
+
+ATT_DATACATALOG_IDENTIFIER: urn:nbn:fi:att:data-catalog-att
+IDA_DATACATALOG_IDENTIFIER: urn:nbn:fi:att:data-catalog-ida
+LEGACY_DATACATALOG_IDENTIFIER: urn:nbn:fi:att:data-catalog-legacy
+PAS_DATACATALOG_IDENTIFIER: urn:nbn:fi:att:data-catalog-pas
+
+DFT_DATACATALOG_IDENTIFIER: urn:nbn:fi:att:data-catalog-dft
+
+END_USER_ALLOWED_DATA_CATALOGS: [
+    "urn:nbn:fi:att:data-catalog-ida",
+    "urn:nbn:fi:att:data-catalog-att",
+    "urn:nbn:fi:att:data-catalog-legacy",
+    "urn:nbn:fi:att:data-catalog-dft"
+]
+
+# which versions of the API should be enabled (v1, v2, etc...)
+API_VERSIONS_ENABLED: [
+    "v1",
+    "v2"
+]
+
+# specify read and write access of services per api, or if an api is readable by world
+API_ACCESS: {
+    "rest": {
+        "apierrors": {
+            "create": [
+                "metax"
+            ],
+            "delete": [
+                "metax"
+            ],
+            "read": [
+                "metax"
+            ]
+        },
+        "contracts": {
+            "create": [
+                "metax",
+                "tpas"
+            ],
+            "delete": [
+                "metax",
+                "tpas"
+            ],
+            "read": [
+                "metax",
+                "tpas"
+            ],
+            "update": [
+                "metax",
+                "tpas"
+            ]
+        },
+        "datacatalogs": {
+            "create": [
+                "metax",
+                "etsin"
+            ],
+            "delete": [
+                "metax",
+                "etsin"
+            ],
+            "read": [
+                "metax",
+                "all"
+            ],
+            "update": [
+                "metax",
+                "etsin"
+            ]
+        },
+        "datasets": {
+            "create": [
+                "metax",
+                "qvain",
+                "etsin",
+                "tpas",
+                "endusers"
+            ],
+            "delete": [
+                "metax",
+                "qvain",
+                "etsin",
+                "tpas",
+                "endusers"
+            ],
+            "read": [
+                "all"
+            ],
+            "update": [
+                "metax",
+                "qvain",
+                "etsin",
+                "tpas",
+                "endusers"
+            ]
+        },
+        "directories": {
+            "create": [],
+            "delete": [],
+            "read": [
+                "metax",
+                "qvain",
+                "etsin",
+                "tpas",
+                "fds",
+                "endusers"
+            ],
+            "update": []
+        },
+        "files": {
+            "create": [
+                "metax",
+                "ida",
+                "tpas"
+            ],
+            "delete": [
+                "metax",
+                "ida",
+                "tpas"
+            ],
+            "read": [
+                "metax",
+                "ida",
+                "fds",
+                "tpas",
+                "endusers"
+            ],
+            "update": [
+                "metax",
+                "ida",
+                "tpas",
+                "endusers"
+            ]
+        },
+        "filestorages": {
+            "create": [
+                "metax"
+            ],
+            "delete": [
+                "metax"
+            ],
+            "read": [
+                "metax"
+            ],
+            "update": [
+                "metax"
+            ]
+        },
+        "schemas": {
+            "create": [],
+            "delete": [],
+            "read": [
+                "all"
+            ],
+            "update": []
+        }
+    },
+    "rpc": {
+        "datasets": {
+            "change_cumulative_state": {
+                "use": [
+                    "all"
+                ]
+            },
+            "create_draft": {
+                "use": [
+                    "all"
+                ]
+            },
+            "create_new_version": {
+                "use": [
+                    "all"
+                ]
+            },
+            "fix_deprecated": {
+                "use": [
+                    "all"
+                ]
+            },
+            "get_minimal_dataset_template": {
+                "use": [
+                    "all"
+                ]
+            },
+            "merge_draft": {
+                "use": [
+                    "all"
+                ]
+            },
+            "publish_dataset": {
+                "use": [
+                    "all"
+                ]
+            },
+            "refresh_directory_content": {
+                "use": [
+                    "all"
+                ]
+            },
+            "set_preservation_identifier": {
+                "use": [
+                    "metax",
+                    "tpas"
+                ]
+            }
+        },
+        "elasticsearchs": {
+            "map_refdata": {
+                "use": [
+                    "all"
+                ]
+            }
+        },
+        "files": {
+            "delete_project": {
+                "use": [
+                    "metax",
+                    "ida",
+                    "tpas"
+                ]
+            },
+            "flush_project": {
+                "use": [
+                    "metax",
+                    "ida",
+                    "tpas"
+                ]
+            }
+        },
+        "statistics": {
+            "all_datasets_cumulative": {
+                "use": [
+                    "all"
+                ]
+            },
+            "catalog_datasets_cumulative": {
+                "use": [
+                    "all"
+                ]
+            },
+            "count_datasets": {
+                "use": [
+                    "all"
+                ]
+            },
+            "deprecated_datasets_cumulative": {
+                "use": [
+                    "all"
+                ]
+            },
+            "end_user_datasets_cumulative": {
+                "use": [
+                    "all"
+                ]
+            },
+            "harvested_datasets_cumulative": {
+                "use": [
+                    "all"
+                ]
+            },
+            "organization_datasets_cumulative": {
+                "use": [
+                    "all"
+                ]
+            },
+            "unused_files": {
+                "use": [
+                    "all"
+                ]
+            }
+        }
+    }
+}
+
+CHECKSUM_ALGORITHMS: [
+    "SHA-256",
+    "MD5",
+    "SHA-512"
+]
+
+# Variables for the OAI-PMH API
+OAI:
+  BASE_URL: https://metax.csc.local/oai/
+  BATCH_SIZE: 25
+  REPOSITORY_NAME: Metax (local_development)
+  ETSIN_URL_TEMPLATE: https://etsin-test.csc.fi/dataset/%s
+  ADMIN_EMAIL: servicedesk@csc.fi
+  SET_MAPPINGS:
+    datasets:
+      - "urn:nbn:fi:att:data-catalog-att"
+      - "urn:nbn:fi:att:data-catalog-ida"
+    att_datasets:
+      - "urn:nbn:fi:att:data-catalog-att"
+    ida_datasets:
+      - "urn:nbn:fi:att:data-catalog-ida"
+
+DATACITE:
+    USERNAME: CSC.NRD
+    PASSWORD: <REPLACE_WITH_DATACITE_PASSWORD>
+    ETSIN_URL_TEMPLATE: https://etsin-test.csc.fi/dataset/%s
+    PREFIX: 10.23729
+    URL: https://mds.test.datacite.org
+
+REMS:
+  ENABLED: True
+  API_KEY: <REPLACE_WITH_REMS_API_KEY>
+  BASE_URL: https://replace_with_rems_url
+  ETSIN_URL_TEMPLATE: "https://etsin-test.csc.fi/dataset/%s"
+  METAX_USER: <REPLACE_WITH_REMS_METAX_USER>
+  REPORTER_USER: <REPLACE_WITH_REMS_REPORTER_USER>
+  AUTO_APPROVER: not-used
+  FORM_ID: 1

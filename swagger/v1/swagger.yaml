@@ -521,30 +521,6 @@ paths:
           description: Forbidden. Must have permission for resource
       tags:
         - File API
-  /rest/files/restore:
-    post:
-      summary: Restore removed files back to "not removed" state.
-      description: |
-        note&#58; does not restore possible deprecated datasets (due to files having been removed) to back to non-deprecated state!
-      produces:
-        - application/json
-      parameters:
-        - name: body
-          in: body
-          description: A list of file identifiers of files to restore.
-          required: true
-          schema:
-            $ref: '#/definitions/StringList'
-        - $ref: "#/parameters/dryrun"
-      responses:
-        '200':
-          description: Numbers of files restored.
-        '400':
-          description: Request ended in an error, response contains details.
-        '403':
-          description: Forbidden. Must have permission for resource
-      tags:
-        - File API
   /rest/directories/{PID}:
     get:
       summary: Get details of a directory
@@ -1550,16 +1526,6 @@ paths:
           description: Not found
       tags:
         - ApiErrors API
-  /rest/apierrors/flush:
-    post:
-      summary: "Delete all error entries"
-      responses:
-        '200':
-          description: All entries deleted. Return a json object telling how many items were deleted.
-        '403':
-          description: Forbidden. Must have permission for resource
-      tags:
-        - ApiErrors API
 
 
 # Schema API
@@ -1590,6 +1556,16 @@ paths:
 
 
 # RPC APIs
+  /rpc/apierrors/flush_errors:
+    post:
+      summary: Delete all error entries
+      responses:
+        '200':
+          description: All entries deleted. Return a json object telling how many items were deleted.
+        '403':
+          description: Forbidden. Must have permission for resource
+      tags:
+        - ApiErrors API
   /rpc/datasets/get_minimal_dataset_template:
     get:
       summary: Get minimal dataset template.
@@ -1657,6 +1633,34 @@ paths:
       responses:
         '200':
           description: Successful operation, returns information about the new dataset version.
+      tags:
+        - Dataset RPC
+  /rpc/datasets/update_cr_directory_browsing_data:
+    get:
+      summary: Updates dataset's information on directories file count and file size.
+      description: Updates cr field _directory_data with cr specific directory data used during file browsing. If ID of catalog record is not provided all catalog records will be updated. Meant only for updating test data.
+      parameters:
+        - name: id
+          in: query
+          description: Id of the catalog record to be updated.
+          required: false
+          type: number
+      responses:
+        '204':
+          description: Successful operation.
+        '403':
+          description: Forbidden. Must have permission for resource.
+      tags:
+        - Dataset RPC
+  /rpc/datasets/update_cr_total_files_byte_sizes:
+    get:
+      summary: Updates test data having wrong total byte size.
+      description: Meant only for updating test data of IDA catalog having wrong total byte size.
+      responses:
+        '204':
+          description: Successful operation.
+        '403':
+          description: Forbidden. Must have permission for resource
       tags:
         - Dataset RPC
   /rpc/statistics/count_datasets:
@@ -1814,6 +1818,18 @@ paths:
             $ref: "#/examples/unused_files"
       tags:
         - Statistics RPC
+  /rpc/directories/update_byte_sizes_and_file_counts:
+    get:
+      summary: Calculate byte sizes and file counts for all dirs in all projects.
+      description: Calculate byte sizes and file counts for all dirs in all projects. Intended to be called after importing test data.
+        If needed there should be no harm in calling this method again at any time in an attempt to correct mistakes in real data.
+      responses:
+        '204':
+          description: Successful operation.
+        '403':
+          description: Forbidden. Must have permission for resource.
+      tags:
+        - Directory RPC
   /rpc/files/delete_project:
     post:
       summary: Deletes given project from the database.
@@ -1846,6 +1862,28 @@ paths:
           description: Successful operation, returns information about the new dataset version.
         '400':
           description: API currently allowed only in test environments.
+  /rpc/files/restore:
+    post:
+      summary: Restore removed files back to "not removed" state.
+      description: |
+        note&#58; does not restore possible deprecated datasets (due to files having been removed) to back to non-deprecated state!
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          description: A list of file identifiers of files to restore.
+          required: true
+          schema:
+            $ref: '#/definitions/StringList'
+        - $ref: "#/parameters/dryrun"
+      responses:
+        '200':
+          description: Numbers of files restored.
+        '400':
+          description: Request ended in an error, response contains details.
+        '403':
+          description: Forbidden. Must have permission for resource
       tags:
         - File RPC
 

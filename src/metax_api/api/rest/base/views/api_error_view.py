@@ -8,7 +8,6 @@
 import logging
 
 from django.http import Http404
-from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from metax_api.exceptions import Http403, Http501
@@ -60,12 +59,6 @@ class ApiErrorViewSet(CommonViewSet):
         _logger.info('DELETE %s called by %s' % (request.META['PATH_INFO'], request.user.username))
         ApiErrorService.remove_error_file(kwargs['pk'])
         return Response(status=204)
-
-    @action(detail=False, methods=['post'], url_path="flush")
-    def flush_errors(self, request):
-        _logger.info('%s called by %s' % (request.META['PATH_INFO'], request.user.username))
-        files_deleted_count = ApiErrorService.flush_errors()
-        return Response(data={ 'files_deleted': files_deleted_count }, status=200)
 
     def update(self, request, *args, **kwargs):
         raise Http501()

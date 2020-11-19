@@ -411,8 +411,8 @@ class DirectoryApiReadCatalogRecordFileBrowsingTests(DirectoryApiReadCommon):
 
     def setUp(self):
         self._set_http_authorization('service')
-        self.client.get('/rest/directories/update_byte_sizes_and_file_counts')
-        self.client.get('/rest/datasets/update_cr_directory_browsing_data')
+        self.client.get('/rpc/directories/update_byte_sizes_and_file_counts')
+        self.client.get('/rpc/datasets/update_cr_directory_browsing_data')
 
     def test_read_directory_catalog_record_and_not_catalog_record_not_ok(self):
         """

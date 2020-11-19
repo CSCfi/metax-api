@@ -37,7 +37,10 @@ class CommonRPC(CommonViewSet):
         Some views where the below formula does not produce a sensible result
         will inherit this and return a customized result.
         """
-        return '%ss' % self.__class__.__name__.split('RPC')[0].lower()
+        class_name = self.__class__.__name__.split('RPC')[0].lower()
+        if class_name[-1] == 'y':
+            return '%sies' % class_name[:-1]
+        return '%ss' % class_name
 
     def create(self, request, *args, **kwargs):
         raise Http501()

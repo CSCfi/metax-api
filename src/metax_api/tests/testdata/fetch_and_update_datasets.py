@@ -126,7 +126,7 @@ def retrieve_and_update_all_data_catalogs_in_db(headers):
 
 def update_directory_byte_sizes_and_file_counts(headers):
     print('-- begin updating byte sizes and file counts in all dirs in all projects --')
-    response = requests.get('https://localhost/rest/directories/update_byte_sizes_and_file_counts',
+    response = requests.get('https://localhost/rpc/directories/update_byte_sizes_and_file_counts',
         headers=headers, verify=False)
     if response.status_code not in (200, 201, 204):
         raise Exception(response.text)
@@ -135,7 +135,7 @@ def update_directory_byte_sizes_and_file_counts(headers):
 
 def update_ida_datasets_total_files_byte_size(headers):
     print('-- begin updating IDA CR total ida byte sizes --')
-    response = requests.get('https://localhost/rest/datasets/update_cr_total_files_byte_sizes',
+    response = requests.get('https://localhost/rpc/datasets/update_cr_total_files_byte_sizes',
         headers=headers, verify=False)
     if response.status_code not in (200, 201, 204):
         raise Exception(response.text)
@@ -147,7 +147,7 @@ def update_cr_directory_browsing_data(headers):
     test_records = get_test_datasets()
 
     for r in test_records:
-        response = requests.get(f'https://localhost/rest/datasets/update_cr_directory_browsing_data?id={r["id"]}',
+        response = requests.get(f'https://localhost/rpc/datasets/update_cr_directory_browsing_data?id={r["id"]}',
             headers=headers, verify=False)
         if response.status_code not in (200, 201, 204):
             raise Exception(response.text)

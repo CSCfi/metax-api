@@ -133,9 +133,18 @@ if executing_in_test_case or executing_in_travis:
                 "publish_dataset": { "use": ["all"] },
                 "create_draft": { "use": ["all"] },
                 "merge_draft": { "use": ["all"] },
+                "update_cr_directory_browsing_data": { "use": ["all"] },
+                "update_cr_total_files_byte_sizes": { "use": ["all"] }
             },
             "files": {
-                "delete_project": { "use": ["testuser", "metax"] }
+                "delete_project": { "use": ["testuser", "metax"] },
+                "restore": { "use": ["testuser", "metax"] }
+            },
+            "directories": {
+                "update_byte_sizes_and_file_counts": { "use": ["metax"] }
+            },
+            "apierrors": {
+                "flush_errors": { "use": ["metax", "ida", "tpas"] }
             },
             "statistics": {
                 "count_datasets": { "use": ["all"] },

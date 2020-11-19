@@ -23,7 +23,8 @@ Including another URLconf
 
 from rest_framework.routers import DefaultRouter
 
-from metax_api.api.rpc.base.views import FileRPC, StatisticRPC
+from metax_api.api.rpc.base.views import FileRPC, StatisticRPC, ApiErrorRPC, DirectoryRPC, ElasticsearchRPC
+
 from .views import (
     DatasetRPC,
 )
@@ -40,8 +41,11 @@ class CustomRouter(DefaultRouter):
 
 
 router = CustomRouter(trailing_slash=False)
+router.register(r'apierrors/?', ApiErrorRPC)
 router.register(r'datasets/?', DatasetRPC)
 router.register(r'files/?', FileRPC)
+router.register(r'directories/?', DirectoryRPC)
 router.register(r'statistics/?', StatisticRPC)
+router.register(r'elasticsearchs/?', ElasticsearchRPC)
 
 api_urlpatterns = router.urls

@@ -119,7 +119,7 @@ class ApiErrorReadBasicTests(APITestCase, TestClassUtils):
         response = self.client.get('/rest/v2/apierrors')
         self.assertEqual(len(response.data), 2, response.data)
 
-        response = self.client.post('/rest/v2/apierrors/flush')
+        response = self.client.post('/rpc/v2/apierrors/flush_errors')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
 
         response = self.client.get('/rest/v2/apierrors')

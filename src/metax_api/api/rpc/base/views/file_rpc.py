@@ -72,3 +72,10 @@ class FileRPC(CommonRPC):
         _logger.info('Permanently deleted all files and directories from project %s' % project)
 
         return Response(data=None, status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, methods=['post'], url_path="restore")
+    def restore_files(self, request):
+        """
+        Restore removed files.
+        """
+        return FileService.restore_files(request, request.data)

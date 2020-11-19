@@ -196,13 +196,6 @@ class FileViewSet(CommonViewSet):
 
         raise Http403({ 'detail': [ 'Invalid parameters' ]})
 
-    @action(detail=False, methods=['post'], url_path="restore")
-    def restore_files(self, request):
-        """
-        Restore removed files.
-        """
-        return FileService.restore_files(request, request.data)
-
     def destroy(self, request, pk, **kwargs):
         return FileService.destroy_single(self.get_object())
 

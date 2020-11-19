@@ -105,10 +105,10 @@ class StatisticRPCCommon(APITestCase, TestClassUtils):
 
         response = self.client.post('/rest/v2/files', files, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
-        response = self.client.get('/rest/v2/directories/update_byte_sizes_and_file_counts', format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
-        response = self.client.get('/rest/v2/datasets/update_cr_total_files_byte_sizes', format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        response = self.client.get('/rpc/v2/directories/update_byte_sizes_and_file_counts', format='json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, response.data)
+        response = self.client.get('/rpc/v2/datasets/update_cr_total_files_byte_sizes', format='json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, response.data)
 
         # create legacy datacatalog
         dc = DataCatalog.objects.filter(catalog_json__research_dataset_schema='ida').first()

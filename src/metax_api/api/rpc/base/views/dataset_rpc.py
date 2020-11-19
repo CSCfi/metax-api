@@ -16,7 +16,7 @@ from rest_framework.response import Response
 
 from metax_api.api.rest.base.serializers import CatalogRecordSerializer
 from metax_api.exceptions import Http400, Http403
-from metax_api.models import CatalogRecord
+from metax_api.models import Common, CatalogRecord, DataCatalog
 from metax_api.models.catalog_record import DataciteDOIUpdate
 from metax_api.services.datacite_service import DataciteException, DataciteService, convert_cr_to_datacite_cr_json
 from metax_api.utils import generate_doi_identifier, is_metax_generated_doi_identifier
@@ -172,3 +172,60 @@ class DatasetRPC(CommonRPC):
 
         super(CatalogRecord, cr).save(update_fields=['preservation_identifier'])
         DataciteDOIUpdate(cr, cr.preservation_identifier, action)()
+
+    @action(detail=False, methods=['get'], url_path="update_cr_total_files_byte_sizes")
+    def update_cr_total_files_byte_sizes(self, request):
+        """
+        Meant only for updating test data having wrong total ida byte size
+
+        :param request:
+        :return:
+        """
+        if request.user.username != 'metax':
+            raise Http403()
+        # Get all IDs for ida data catalogs
+        ida_catalog_ids = []
+        for dc in DataCatalog.objects.filter(catalog_json__contains={'research_dataset_schema': 'ida'}):
+            ida_catalog_ids.append(dc.id)
+
+        # Update IDA CR total_files_byte_size field value without creating a new version
+        # Skip CatalogRecord save since it prohibits changing the value of total_files_byte_size
+        for cr in self.object.objects.filter(data_catalog_id__in=ida_catalog_ids):
+            cr.research_dataset['total_files_byte_size'] = sum(f.byte_size for f in cr.files.all())
+            cr.preserve_version = True
+            super(Common, cr).save()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, methods=['get'], url_path="update_cr_directory_browsing_data")
+    def update_cr_directory_browsing_data(self, request):
+        """
+        Meant only for updating test data: Updates cr field _directory_data with cr specific
+        directory data used during file browsing.
+
+        :param request:
+        :return:
+        """
+        if request.user.username != 'metax':
+            raise Http403()
+
+        if 'id' in request.query_params:
+            # in order to update one record only, use query param ?id=integer. useful for testcases
+            records = self.object.objects.filter(pk=request.query_params['id'], deprecated=False).only('id')
+        else:
+            records = self.object.objects \
+                                 .filter(data_catalog__catalog_json__research_dataset_schema='ida', deprecated=False) \
+                                 .only('id')
+
+        from time import time
+
+        for cr in records:
+            start = time()
+            cr.calculate_directory_byte_sizes_and_file_counts()
+            end = time()
+            file_count = cr.files.all().count()
+            dir_count = cr.files.all().distinct('parent_directory_id').count()
+            _logger.info('record %d took %.2f seconds. record has %d files in approximately %d directories.' %
+                (cr.id, end - start, file_count, dir_count))
+
+        return Response(status=status.HTTP_204_NO_CONTENT)

@@ -61,20 +61,20 @@ class _RabbitMQService():
 
         body: body of the message. can be a list of messages, in which case each message is published
               individually.
-        routing_key: in direct-type exchanges, publish message to a specific route, which
-                     clients can filter to in their queues. a required parameter for direct-type
-                     exchanges (throws exception if missing).
         exchange: exchange to publish in
         persistent: make message persist in rabbitmq storage over rabbitmq-server restart.
                     otherwise messages not retrieved by clients before restart will be lost.
                     (still is not 100 % guaranteed to persist!)
         """
-        credentials = pika.PlainCredentials(self._settings['USER'], self._settings['PASSWORD'])
-        connection = pika.BlockingConnection(pika.ConnectionParameters(
-            host = 'localhost',
-            virtual_host = self._settings['VHOST'],
-            port = 5672,
-            credentials = credentials))
+        # For testing
+        # credentials = pika.PlainCredentials(self._settings['USER'], self._settings['PASSWORD'])
+        # connection = pika.BlockingConnection(pika.ConnectionParameters(
+        #     host = 'localhost',
+        #     virtual_host = self._settings['VHOST'],
+        #     port = 5672,
+        #     credentials = credentials))
+
+        self._connect()
 
         additional_args = {}
         if persistent:
@@ -85,9 +85,9 @@ class _RabbitMQService():
         else:
             messages = [body]
 
-        channel = connection.channel()
+        channel = self._connection.channel()
 
-        exchange = 'TTV_datasets'
+        exchange = 'TTV-datasets'
         queue_4 = 'ttv-create'
         queue_5 = 'ttv-update'
         queue_6 = 'ttv-delete'
@@ -113,7 +113,9 @@ class _RabbitMQService():
             _logger.error("Unable to publish message to RabbitMQ")
             raise
         finally:
-            connection.close()
+            self._connection.close()
+            # for testing
+            # connection.close()
 
     def publish(self, body, routing_key='', exchange=None, persistent=True):
         """

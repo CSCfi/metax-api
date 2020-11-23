@@ -32,6 +32,4 @@ class ContractSerializer(CommonSerializer):
 
     def _validate_identifier_uniqueness(self, contract_json):
         if Contract.objects.filter(contract_json__identifier=contract_json['identifier']).exists():
-            raise ValidationError({'identifier':
-                ['identifier %s already exists' % contract_json['identifier']]
-            })
+            raise ValidationError(f"identifier {contract_json['identifier']} already exists")

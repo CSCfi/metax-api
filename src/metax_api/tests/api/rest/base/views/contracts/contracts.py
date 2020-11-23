@@ -69,8 +69,8 @@ class ContractApiWriteTestV1(APITestCase, TestClassUtils):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
 
         response = self.client.post('/rest/contracts/', self.test_new_data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue('already exists' in response.data['contract_json']['identifier'][0],
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, response.data)
+        self.assertTrue('already exists' in response.data['contract_json'][0],
             'Error regarding dublicated identifier')
 
     def test_update_contract(self):

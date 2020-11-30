@@ -109,7 +109,6 @@ def retrieve_and_update_all_data_catalogs_in_db(headers):
     print('retrieving details of data catalogs and updating %d data catalogs...' % len(data_catalog_ids))
 
     for dc_id in data_catalog_ids:
-        from django.conf import settings as django_settings
         response = requests.get('https://localhost/rest/datacatalogs/%s' % dc_id, headers=headers, verify=False)
 
         if response.status_code == 200:

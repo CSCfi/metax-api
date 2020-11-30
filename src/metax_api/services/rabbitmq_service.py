@@ -157,7 +157,10 @@ class _RabbitMQService():
                         message,
                         cls=DjangoJSONEncoder)
                 self._channel.basic_publish(body=message, routing_key=routing_key, exchange=exchange, **additional_args)
-                self.publish_to_TTV(body=message, routing_key=routing_key, exchange=None)
+                if settings.RABBITMQ_FOR_TTV_ENABLED:
+                    self.publish_to_TTV(body=message, routing_key=routing_key, exchange=None)
+                else:
+                    pass
         except Exception as e:
             _logger.error(e)
             _logger.error("Unable to publish message to RabbitMQ")

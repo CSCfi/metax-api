@@ -8,6 +8,8 @@
 import logging
 
 from django.http import Http404
+from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from metax_api.exceptions import Http403, Http501
@@ -74,3 +76,8 @@ class ApiErrorViewSet(CommonViewSet):
 
     def create(self, request, *args, **kwargs):
         raise Http501()
+
+    @action(detail=False, methods=['post'], url_path="flush")
+    def flush_errors(self, request):
+        # todo remove api when comfortable
+        raise ValidationError({ 'detail': ['API has been moved to RPC API: /rpc/apierrors/flush_errors'] })

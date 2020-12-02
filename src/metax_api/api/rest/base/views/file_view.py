@@ -297,6 +297,11 @@ class FileViewSet(CommonViewSet):
         new_xml_metadata.update(common_info)
         return new_xml_metadata
 
+    @action(detail=False, methods=['post'], url_path="restore")
+    def restore_files(self, request):
+        # todo remove api when comfortable
+        raise ValidationError({ 'detail': ['API has been moved to RPC API: /rpc/files/restore'] })
+
     @action(detail=False, methods=['post'], url_path="flush_project")
     def flush_project(self, request): # pragma: no cover
         # todo remove api when comfortable

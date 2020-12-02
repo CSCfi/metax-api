@@ -338,3 +338,15 @@ class DatasetViewSet(CommonViewSet):
     def flush_records(self, request):  # pragma: no cover
         # todo remove api when comfortable
         raise ValidationError({ 'detail': ['Flush operations are not allowed. Contact servicedesk@csc.fi.'] })
+
+    @action(detail=False, methods=['get'], url_path="update_cr_directory_browsing_data")
+    def update_cr_directory_browsing_data(self, request):
+        # todo remove api when comfortable
+        raise ValidationError({ 'detail':
+            ['API has been moved to RPC API: /rpc/apierrors/update_cr_directory_browsing_data'] })
+
+    @action(detail=False, methods=['get'], url_path="update_cr_total_files_byte_sizes")
+    def update_cr_total_files_byte_sizes(self, request):
+        # todo remove api when comfortable
+        raise ValidationError({ 'detail':
+            ['API has been moved to RPC API: /rpc/apierrors/update_cr_total_files_byte_sizes'] })

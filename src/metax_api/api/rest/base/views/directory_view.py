@@ -8,6 +8,7 @@
 from collections import defaultdict
 
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from metax_api.api.rest.base.serializers import DirectorySerializer
@@ -146,3 +147,9 @@ class DirectoryViewSet(CommonViewSet):
         root_dirs = FileService.get_project_root_directory(request.query_params['project'])
 
         return Response(root_dirs)
+
+    @action(detail=False, methods=['get'], url_path="update_byte_sizes_and_file_counts")
+    def update_byte_sizes_and_file_counts(self, request):
+        # todo remove api when comfortable
+        raise ValidationError({ 'detail':
+            ['API has been moved to RPC API: /rpc/apierrors/update_byte_sizes_and_file_counts'] })

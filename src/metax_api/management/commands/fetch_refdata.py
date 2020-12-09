@@ -1,8 +1,8 @@
 from django.core.management.base import BaseCommand
 
-from metax_api.tasks.refdata.refdata_indexer.index_data import index_data
+from metax_api.tasks.refdata.refdata_fetcher.fetch_data import fetch_data
 
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        index_data()
+        fetch_data()

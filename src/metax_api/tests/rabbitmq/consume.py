@@ -9,11 +9,8 @@ import pika
 from django.conf import settings
 """
 for testing:
-
 script to listen for messages sent when someone accesses /rest/datasets/pid/rabbitmq
 """
-
-
 
 
 def get_test_user():

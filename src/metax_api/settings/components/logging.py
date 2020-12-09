@@ -60,7 +60,9 @@ LOGGING = {
         "metax_api": {
             "handlers": ["general", "console", "debug"],
         },
-        "root": {"level": "INFO", "handlers": ["console"]},
+        "root": {
+            "level": "INFO", "handlers": ["console"],
+        },
     },
 }
 

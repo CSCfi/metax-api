@@ -11,12 +11,8 @@ import environ
 from icecream import ic
 from split_settings.tools import include
 
-from metax_api.settings.components import BASE_DIR  # src
+from metax_api.settings.components import BASE_DIR, REFDATA_PATH, REFDATA_INDEXER_PATH, REFDATA_FETCHER_PATH # src
 
-# Managing environment via DJANGO_ENV variable:
-REFDATA_INDEXER_PATH = join(
-    BASE_DIR, "metax_api", "tasks", "refdata", "refdata_indexer"
-)
 env = environ.Env(
     # set casting, default value
     ADDITIONAL_USER_PROJECTS_PATH=(str, ""),
@@ -26,8 +22,6 @@ env = environ.Env(
     ELASTIC_SEARCH_PORT=(int, 9200),
     ELASTIC_SEARCH_USE_SSL=(bool, False),
     ERROR_FILES_PATH=(str, join(BASE_DIR, "log", "errors")),
-    ES_CONFIG_DIR=(str, join(REFDATA_INDEXER_PATH, "resources", "es-config/")),
-    LOCAL_REF_DATA_FOLDER=(str,join(REFDATA_INDEXER_PATH, "resources", "local-refdata/"),),
     LOGGING_DEBUG_HANDLER_FILE=(str, join(BASE_DIR, "log", "metax_api.log")),
     LOGGING_GENERAL_HANDLER_FILE=(str, join(BASE_DIR, "log", "metax_api.log")),
     LOGGING_JSON_FILE_HANDLER_FILE=(str, join(BASE_DIR, "log", "metax_api.json.log")),
@@ -47,8 +41,13 @@ env = environ.Env(
     REDIS_USE_PASSWORD=(bool, False),
     SERVER_DOMAIN_NAME=(str, "metax.csc.local"),
     TRAVIS=(bool, False),
-    VALIDATE_TOKEN_URL=(str, "https://127.0.0.1/secure/validate_token"),
-    WKT_FILENAME=(str, join(REFDATA_INDEXER_PATH, "resources", "uri_to_wkt.json")),
+
+    # reference data vars
+    REFDATA_REPO=(str, join(BASE_DIR, "metax-refdata/")),
+    ES_CONFIG_DIR=(str, join(REFDATA_INDEXER_PATH, "resources", "es-config/")),
+    LOCAL_REF_DATA_FOLDER=(str, join(REFDATA_FETCHER_PATH, "resources", "local-refdata/")),
+    ORG_FILE_PATH=(str, join(REFDATA_FETCHER_PATH, "resources", "organizations", "organizations.csv")),
+    WKT_FILENAME=(str, join(REFDATA_FETCHER_PATH, "resources", "uri_to_wkt.json")),
 )
 # reading .env file
 environ.Env.read_env()
@@ -58,6 +57,7 @@ ENV = env("DJANGO_ENV")
 base_settings = [
     "components/common.py",
     "components/logging.py",
+    "components/reference_data.py",
     "components/redis.py",
     "components/access_control.py",
     "components/elasticsearch.py",

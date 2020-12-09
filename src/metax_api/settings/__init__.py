@@ -31,6 +31,7 @@ env = environ.Env(
     LOGGING_DEBUG_HANDLER_FILE=(str, join(BASE_DIR, "log", "metax_api.log")),
     LOGGING_GENERAL_HANDLER_FILE=(str, join(BASE_DIR, "log", "metax_api.log")),
     LOGGING_JSON_FILE_HANDLER_FILE=(str, join(BASE_DIR, "log", "metax_api.json.log")),
+    METAX_DATABASE_HOST=(str, "localhost"),
     METAX_DATABASE_PORT=(str, 5432),
     METAX_ENV=(str, "local_development"),
     METAX_API_ROOT=(str, "https://localhost:8008"),

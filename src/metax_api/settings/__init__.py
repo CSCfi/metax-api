@@ -41,6 +41,7 @@ env = environ.Env(
     REDIS_USE_PASSWORD=(bool, False),
     SERVER_DOMAIN_NAME=(str, "metax.csc.local"),
     TRAVIS=(bool, False),
+    VALIDATE_TOKEN_URL=(str, "https://127.0.0.1/secure/validate_token"),
 
     # reference data vars
     REFDATA_REPO=(str, join(BASE_DIR, "metax-refdata/")),

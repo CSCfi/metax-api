@@ -144,11 +144,9 @@ class _RedisCacheService:
             return master.set(key, pickled_data, **kwargs)
         except (TimeoutError, ConnectionError, MasterNotFoundError) as e:
             if self._DEBUG:
-                d(
-                    f"cache:
-                    master timed out or not found, or connection refused. no write instances available.
-                    error: {str(e)}"
-                )
+                d(f"cache: \
+                    master timed out or not found, or connection refused. no write instances available. \
+                    error: {str(e)}")
             # no master available
             return
 
@@ -202,11 +200,9 @@ class _RedisCacheService:
             master.delete(*keys)
         except (TimeoutError, ConnectionError, MasterNotFoundError) as e:
             if self._DEBUG:
-                d(
-                    f"cache:
-                    master timed out or not found, or connection refused. no write instances available.
-                    error: {str(e)}"
-                )
+                d(f"cache: \
+                    master timed out or not found, or connection refused. no write instances available. \
+                    error: {str(e)}")
             # no master available
             return
 

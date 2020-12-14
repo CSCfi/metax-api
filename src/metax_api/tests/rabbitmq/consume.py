@@ -14,6 +14,7 @@ script to listen for messages sent when someone accesses /rest/datasets/pid/rabb
 
 
 def get_test_user():
+    print('-----------weeer-----------')
     for user in settings.CONSUMERS:
         if user['is_test_user']:
             return user

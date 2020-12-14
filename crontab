@@ -1,0 +1,1 @@
+* * * * * /code/metax_api/tasks/refdata/refdata_fetcher/fetch_all_reference.sh >> /var/log/cron.log 2>&1

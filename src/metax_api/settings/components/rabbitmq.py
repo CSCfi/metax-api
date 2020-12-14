@@ -5,6 +5,7 @@ RABBITMQ = {
     "PORT": env("RABBIT_MQ_PORT"),
     "USER": env("RABBIT_MQ_USER"),
     "VHOST": env("RABBIT_MQ_VHOST"),
+    'VHOST_TTV': env("RABBIT_MQ_VHOST_TTV"),
     "PASSWORD": env("RABBIT_MQ_PASSWORD"),
     "EXCHANGES": [
         {
@@ -12,6 +13,12 @@ RABBITMQ = {
             "TYPE": "direct",
             # make rabbitmq remember queues after restarts
             "DURABLE": True,
+        },
+        {
+            'NAME': 'TTV-datasets',
+            'TYPE': 'fanout',
+            # make rabbitmq remember queues after restarts
+            'DURABLE': True
         }
     ],
 }

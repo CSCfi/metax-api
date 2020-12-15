@@ -213,4 +213,15 @@ CONSUMERS = [
         },
         "vhost": "metax",
     },
+    {
+        "is_test_user": False,
+        "name": "ttv",
+        "password": "test-ttv",
+        "permissions": {
+            "conf": "^ttv-.*$",
+            "read": "^(TTV-datasets|ttv-.*)$",
+            "write": "^ttv-.*$",
+        },
+        "vhost": "ttv",
+    },
 ]

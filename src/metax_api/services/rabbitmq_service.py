@@ -62,58 +62,6 @@ class _RabbitMQService:
         else:
             raise Exception("Unable to connect to RabbitMQ")
 
-    def publish_to_TTV(self, body, routing_key='', exchange=None, persistent=True):
-        """
-        Publish a message to an exchange, which might or might not have queues bound to it.
-
-        body: body of the message. can be a list of messages, in which case each message is published
-              individually.
-        exchange: exchange to publish in
-        persistent: make message persist in rabbitmq storage over rabbitmq-server restart.
-                    otherwise messages not retrieved by clients before restart will be lost.
-                    (still is not 100 % guaranteed to persist!)
-        """
-        host = random.choice(self._hosts)
-        connection_ttv = pika.BlockingConnection(pika.ConnectionParameters(
-            host,
-            self._settings['PORT'],
-            self._settings['VHOST_TTV'],
-            self._credentials))
-
-        if isinstance(body, list):
-            messages = body
-        else:
-            messages = [body]
-
-        additional_args = {}
-        if persistent:
-            additional_args['properties'] = pika.BasicProperties(delivery_mode=2)
-
-        channel = connection_ttv.channel()
-
-        exchange = 'TTV-datasets'
-        queue_4 = 'ttv-operations'
-
-        channel.exchange_declare(exchange=exchange, exchange_type='fanout')
-        channel.queue_declare(queue_4, durable=True)
-
-        channel.queue_bind(exchange=exchange, queue=queue_4, routing_key='ttv-operations')
-
-        try:
-            for message in messages:
-                if isinstance(message, dict):
-                    message = json_dumps(
-                        message,
-                        cls=DjangoJSONEncoder)
-                channel.basic_publish(body=message, routing_key='ttv-operations', exchange=exchange, **additional_args)
-        except Exception as e:
-            _logger.error(e)
-            _logger.error("Unable to publish message to TTV's RabbitMQ")
-            raise
-        finally:
-            # for testing
-            connection_ttv.close()
-
     def publish(self, body, routing_key='', exchange=None, persistent=True):
         """
         Publish a message to an exchange, which might or might not have queues bound to it.
@@ -147,7 +95,6 @@ class _RabbitMQService:
                         message,
                         cls=DjangoJSONEncoder)
                 self._channel.basic_publish(body=message, routing_key=routing_key, exchange=exchange, **additional_args)
-                self.publish_to_TTV(body=message)
         except Exception as e:
             _logger.error(e)
             _logger.error("Unable to publish message to RabbitMQ")
@@ -167,8 +114,16 @@ class _RabbitMQService:
                 self._channel.exchange_declare(
                     exchange["NAME"],
                     exchange_type=exchange["TYPE"],
-                    durable=exchange.get("DURABLE", True),
+                    durable=exchange["DURABLE"],
                 )
+                for queue in exchange.get("QUEUES", []):
+                    # declare queues in settings
+                    self._channel.queue_declare(queue["NAME"], durable=exchange["DURABLE"])
+                    self._channel.queue_bind(
+                        queue["NAME"],
+                        exchange["NAME"],
+                        queue.get("ROUTING_KEY")
+                    )
         except Exception as e:
             _logger.error(e)
             _logger.exception("Failed to initialize RabbitMQ exchanges")

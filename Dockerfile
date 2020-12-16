@@ -29,24 +29,18 @@ ENV RABBIT_MQ_PASSWORD $RABBIT_MQ_PASSWORD
 ENV RABBIT_MQ_USER $RABBIT_MQ_USER
 ENV ELASTIC_SEARCH_HOSTS $ELASTIC_SEARCH_HOST
 
-COPY crontab /etc/cron.d/fetch_all_reference.sh
+COPY crontab /etc/cron.d/reference_data
 RUN touch /var/log/cron.log
-RUN chmod 0744 /etc/cron.d/fetch_all_reference.sh
-RUN service cron start
-# # Copy fetch_all_reference.sh file to the cron.d directory
-# COPY src/metax_api/tasks/refdata/refdata_fetcher/fetch_all_reference.sh /etc/cron.d/fetch_all_reference.sh
+RUN chmod 0744 /etc/cron.d/reference_data
 
-# # Give execution rights on the cron job
-# RUN chmod 0744 /etc/cron.d/fetch_all_reference.sh
+# COPY src/.ssh /code/.ssh
+# RUN eval $(ssh-agent) && \
+#     echo "StrictHostKeyChecking no" >> /etc/ssh/ssh_config && \
+#     chmod 0700 /code/.ssh && \
+#     chmod 0600 /code/.ssh/id_rsa.github && \
+#     ssh-add -k /code/.ssh/id_rsa.github && \
+#     git clone git@github.com:CSCfi/metax-refdata.git
 
-# # Apply cron job
-# RUN crontab /etc/cron.d/fetch_all_reference.sh
+# COPY src/metax_api/tasks/refdata/refdata_fetcher/resources/gitconfig /code/metax-refdata/.git/config
 
-# # Create the log file to be able to run tail
-# RUN touch /var/log/cron.log
-
-# # Run the command on container startup
-# CMD cron && tail -f /var/log/cron.log
-
-# CMD ["python", "/code/manage.py", "runserver", "0.0.0.0:8008"]
 CMD ["python", "manage.py", "runsslserver", "--certificate", ".certs/cert.pem","--key", ".certs/key.pem", "0.0.0.0:8008"]

@@ -1,0 +1,16 @@
+[core]
+    repositoryformatversion = 0
+    filemode = true
+    bare = false
+    logallrefupdates = true
+[remote "origin"]
+    url = git@metax-api:CSCfi/metax-refdata.git
+    fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+    remote = origin
+    merge = refs/heads/master
+[user]
+    name = metax
+    email = <>
+[push]
+    default = simple

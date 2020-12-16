@@ -16,7 +16,7 @@ BRANCHES=$(git branch -a|grep "^Reference-data-changes")
 echo "Branches to merge $BRANCHES"
 
 git checkout master
-git pull
+git pull --prune
 
 for BRANCH in $BRANCHES
     do

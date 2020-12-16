@@ -44,11 +44,15 @@ class _RabbitMQService:
             # Choose host randomly so that different hosts are tried out in case of connection problems
             host = random.choice(self._hosts)
             try:
-                self._connection = pika.BlockingConnection(pika.ConnectionParameters(
-                    host,
-                    self._settings['PORT'],
-                    self._settings['VHOST'],
-                    self._credentials))
+                kwarg_params = {"port": self._settings["PORT"], "credentials": self._credentials}
+                if settings.RABBIT_MQ_USE_VHOST:
+                    kwarg_params["virtual_host"] = self._settings["VHOST"]
+
+                conn_params = pika.ConnectionParameters(host, **kwarg_params)
+                self._connection = pika.BlockingConnection(
+                    conn_params
+                )
+
             except Exception as e:
                 _logger.error(
                     "Problem connecting to RabbitMQ server (%s), trying to reconnect..."

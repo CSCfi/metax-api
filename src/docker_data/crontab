@@ -1,0 +1,6 @@
+# change time to e.g. 0 3 * * * for script to run on metax docker environment every day at 3:00 UTC
+#
+* * * * * /code/metax_api/tasks/refdata/refdata_fetcher/fetch_all_reference.sh >> /var/log/cron.log
+* * * * * /code/metax_api/tasks/refdata/refdata_fetcher/weekly_merge_refdata.sh >> /var/log/cron.log
+* * * * * /code/metax_api/tasks/refdata/refdata_indexer/reindex_all.sh >> /var/log/cron.log
+# extra mandatory line

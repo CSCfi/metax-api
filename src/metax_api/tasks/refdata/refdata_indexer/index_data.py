@@ -99,5 +99,5 @@ def index_data():
 
     for type in reindexed_types:
         _delete_and_update_indexable_data(refdata_path, type)
-    print('done!!!!!!!!!!')
+
     _logger.info("Done")

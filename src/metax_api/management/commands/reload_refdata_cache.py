@@ -10,6 +10,7 @@ _logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
+        print('------reload refdata cache------')
         try:
             cache = RedisClient()
             cache.set("reference_data", None)

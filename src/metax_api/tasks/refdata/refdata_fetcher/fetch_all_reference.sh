@@ -1,6 +1,8 @@
 #!/bin/bash
 # Script to fetch reference data and organization data to version control
 
+echo --- Daily reference fetching started ---
+
 REFDATA_REPO_PATH=/code/metax-refdata
 
 if [ ! -d "$REFDATA_REPO_PATH" ]; then
@@ -9,6 +11,7 @@ if [ ! -d "$REFDATA_REPO_PATH" ]; then
 fi
 
 NOW=$( date '+%Y%m%dT%H%M%S' )
+echo $NOW
 NEW_BRANCH=Reference-data-changes-$NOW
 
 # fetching reference data
@@ -33,3 +36,5 @@ git add .
 git commit -m "Updated reference data"
 git push -u origin $NEW_BRANCH
 git checkout master
+
+echo --- Reference fetching finished ---

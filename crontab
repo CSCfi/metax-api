@@ -1,3 +1,0 @@
-45 13 * * * root /code/metax_api/tasks/refdata/refdata_fetcher/fetch_all_reference.sh >> /var/log/cron.log 2>&1
-00 14 * * 2 root /code/metax_api/tasks/refdata/refdata_fetcher/tag_refdata.sh >> /var/log/cron.log 2>&1
-55 13 * * * root cd /code/ && python manage.py index_refdata >> /var/log/cron.log 2>&1

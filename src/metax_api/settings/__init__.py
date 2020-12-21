@@ -29,7 +29,6 @@ env = environ.Env(
     METAX_DATABASE_PORT=(str, 5432),
     METAX_ENV=(str, "local_development"),
     METAX_API_ROOT=(str, "https://localhost:8008"),
-    ORG_FILE_PATH=(str, join(REFDATA_INDEXER_PATH, "resources", "organizations", "organizations.csv"),),
     OAI_REPOSITORY_NAME=(str, "Metax"),
     RABBIT_MQ_PORT=(int, 5672),
     REDIS_HOST=(str, "localhost"),

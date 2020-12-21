@@ -6,6 +6,8 @@
 /src/__pycache__/*
 /src/static/*
 /src/.coverage
+/src/log/*
+/src/.ssh/id_rsa*
 /swagger/*index.html
 /swagger/*/index.html
 .idea/
@@ -15,5 +17,4 @@ ubuntu-xenial-16.04-cloudimg-console.log
 .venv_metax/
 .env
 *.pem
-/src/log
 /metax-refdata/*

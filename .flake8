@@ -33,3 +33,4 @@ ignore =
 
 # often contains "unused" imports, too long lines (generated files), and such
 exclude = __init__.py,src/metax_api/migrations/*,src/static,swagger/*
+extend-ignore = E203, W503

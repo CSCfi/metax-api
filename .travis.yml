@@ -54,7 +54,7 @@ before_script:
 - sudo chown -R $USER:$USER src/log
 
 script:
-- cd src && flake8 .
+- cd src && flake8 . --exit-zero
 - python manage.py migrate metax_api
 - coverage run --source="." manage.py test metax_api
 - COVERALLS_REPO_TOKEN=$coveralls_token coveralls

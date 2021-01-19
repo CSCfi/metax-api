@@ -132,6 +132,9 @@ run the tests with command `DJANGO_ENV=test python manage.py test --failfast --k
 
 Metax api is available from your browser at https://localhost:8008
 
+## Black formatter
+
+run `pre-commit install` in the repository root to enable black formatter on commit
 
 [1]: https://docs.docker.com/engine/install/
 [2]: https://github.com/FiloSottile/mkcert

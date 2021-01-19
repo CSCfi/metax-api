@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 @check
 def elasticsearch_check():
+    """Check elasticsearch service"""
     try:
         es = ElasticSearchService()
         ref_index = es.index_exists("reference_data")

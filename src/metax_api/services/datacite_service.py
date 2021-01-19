@@ -185,8 +185,11 @@ class _DataciteService(CommonService):
         is_metax_urn = is_metax_generated_urn_identifier(identifier)
         is_remote_doi = is_remote_doi_identifier(identifier)
 
-        if is_metax_doi or is_remote_doi or dummy_doi:
+        if is_metax_doi or is_remote_doi:
             identifier_value = extract_doi_from_doi_identifier(identifier)
+            identifier_type = 'DOI'
+        elif dummy_doi:
+            identifier_value = '10.0/%s' % identifier
             identifier_type = 'DOI'
         elif not is_strict and is_metax_urn:
             identifier_value = identifier

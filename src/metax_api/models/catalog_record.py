@@ -1254,7 +1254,7 @@ class CatalogRecord(Common):
                     self.use_doi_for_published is True):
                 self._validate_cr_against_datacite_schema()
             if is_metax_generated_doi_identifier(self.research_dataset['preferred_identifier']):
-                    self.add_post_request_callable(DataciteDOIUpdate(self,
+                self.add_post_request_callable(DataciteDOIUpdate(self,
                                         self.research_dataset['preferred_identifier'], 'create'))
 
             if self._dataset_has_rems_managed_access() and settings.REMS['ENABLED']:

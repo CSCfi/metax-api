@@ -785,7 +785,7 @@ class CatalogRecordService(CommonService, ReferenceDataMixin):
                 pass
 
         if sorted(no_access) == sorted(cr_ids):
-            raise Http403({ 'detail': ['None of datasets are permitted for users']})
+            raise Http403({ 'detail': ['None of datasets exists or are permitted for users']})
 
         if not cr_deleted:
             return Response(cr_deleted, status=status.HTTP_404_NOT_FOUND)

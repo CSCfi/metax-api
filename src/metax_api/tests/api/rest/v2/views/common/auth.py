@@ -5,12 +5,9 @@
 # :author: CSC - IT Center for Science Ltd., Espoo Finland <servicedesk@csc.fi>
 # :license: MIT
 
-import json
 import logging
-import os
 
 import responses
-from django.conf import settings
 from rest_framework import status
 
 from metax_api.tests.api.rest.base.views.datasets.write import CatalogRecordApiWriteCommon

@@ -14,4 +14,3 @@ class Command(BaseCommand):
             dir.calculate_byte_size_and_file_count()
             logger.info(f"folder has {dir.file_count} files after recalculation")
         logger.info(f"fix_file_counts command executed successfully")
-

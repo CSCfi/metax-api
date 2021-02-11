@@ -9,15 +9,9 @@ import json
 import datetime
 import logging
 
-import requests
-import urllib3
-from django.conf import settings
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.db import IntegrityError
-from icecream import ic
 
-from metax_api.utils import executing_test_case
-from django.conf import settings as django_settings
 from metax_api.models import DataCatalog
 from metax_api.models import FileStorage
 
@@ -28,7 +22,6 @@ class Command(BaseCommand):
     help = "Load initial data for Metax: Data catalogs, file storages."
 
     def handle(self, *args, **options):
-        ic(executing_test_case())
         with open("metax_api/initialdata/datacatalogs.json", "r") as f:
             data_catalogs = json.load(f)
             for json_dc in data_catalogs:

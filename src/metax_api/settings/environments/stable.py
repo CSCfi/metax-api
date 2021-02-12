@@ -154,6 +154,16 @@ API_ACCESS = {
                     "endusers"
                 ]
             },
+            "create_draft": {
+                "use": [
+                    "all"
+                ]
+            },
+            "create_new_version": {
+                "use": [
+                    "all"
+                ]
+            },
             "fix_deprecated": {
                 "use": [
                     "metax",
@@ -163,6 +173,16 @@ API_ACCESS = {
                 ]
             },
             "get_minimal_dataset_template": {
+                "use": [
+                    "all"
+                ]
+            },
+            "merge_draft": {
+                "use": [
+                    "all"
+                ]
+            },
+            "publish_dataset": {
                 "use": [
                     "all"
                 ]

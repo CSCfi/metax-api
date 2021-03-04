@@ -846,18 +846,18 @@ class FileService(CommonService, ReferenceDataMixin):
 
         return contents
 
-    def add_files_in_dir(self, dir, arr, cr_files):
+    def add_files_in_dir(self, dir: Directory, arr, cr_files):
         a = arr
         for f in dir.files:
             record = f.id, f.id in cr_files
             a.append(record)
-        for child_dir in dir:
-            self.add_files_in_dir(child_dir, a)
+        for child_dir in dir.child_directories:
+            self.add_files_in_dir(child_dir, a, cr_files)
 
 
     def files_in_directory_that_belong_to_catalog_record(self, cr_id, directory_id):
-        dir = Directory.objects.get(id=directory_id)
-        catalog_record = CatalogRecord.objects.get(id=cr_id)
+        dir: Directory = Directory.objects.get(id=directory_id)
+        catalog_record: CatalogRecord = CatalogRecord.objects.get(id=cr_id)
         cr_files = catalog_record.research_dataset.files
         cr_file_ids = []
         for cr_f in cr_files:

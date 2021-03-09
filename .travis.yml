@@ -26,7 +26,7 @@ env:
     - DATACITE_PASSWORD=not_set
     - DATACITE_USERNAME=not_set
     - DEBUG=false
-    - DJANGO_ENV=travis
+    - DJANGO_ENV=test
     - DJANGO_SECRET_KEY=lxpRfm8.JOUa7K.eOxZGtL*o+.zt.ybj
     - DRAFT_ENABLED=true
     - ELASTIC_SEARCH_HOSTS=127.0.0.1

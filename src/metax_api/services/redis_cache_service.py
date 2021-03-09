@@ -65,6 +65,7 @@ class RedisClient(object):
             value = self.client.get(key)
         except KeyError as e:
             _logger.error(f"Redis has no {key} as key: {e}")
+            raise e
         return pickle_loads(value) if value is not None else None
 
     def delete(self, *keys):

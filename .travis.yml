@@ -48,6 +48,12 @@ env:
     - ENABLE_V1_ENDPOINTS=true
     - ENABLE_V2_ENDPOINTS=true
 
+before_install:
+  - curl https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.6.2-amd64.deb -o elasticsearch.deb
+  - sudo dpkg -i --force-confnew elasticsearch.deb
+  - sudo chown -R elasticsearch:elasticsearch /etc/default/elasticsearch
+  - sudo service elasticsearch restart
+
 install:
 - pip install -r requirements.txt
 

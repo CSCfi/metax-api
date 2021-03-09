@@ -62,8 +62,6 @@ before_script:
 - sudo mkdir -p src/log
 - sudo chown -R $USER:$USER src/log
 - sleep 10
-- curl http://127.0.0.1:9200/_cluster/health?pretty 2>&1
-- curl -XGET '127.0.0.1:9200' 2>&1
 
 script:
 - cd src && python manage.py migrate metax_api

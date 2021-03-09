@@ -64,8 +64,7 @@ before_script:
 - sleep 10
 
 script:
-- cd src && python manage.py migrate metax_api
-- python manage.py index_refdata && python manage.py reload_refdata_cache
+- cd src && python manage.py migrate metax_api && python manage.py index_refdata && python manage.py reload_refdata_cache && python manage.py loadinitialdata && python manage.py test metax_api
 - coverage run --source="." manage.py test metax_api
 - COVERALLS_REPO_TOKEN=$coveralls_token coveralls
 

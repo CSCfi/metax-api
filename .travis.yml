@@ -55,6 +55,7 @@ before_script:
 - psql -U postgres < resources/sql/init_test.sql
 - sudo mkdir -p src/log
 - sudo chown -R $USER:$USER src/log
+- sleep 10
 
 script:
 - cd src && python manage.py migrate metax_api

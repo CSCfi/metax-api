@@ -69,6 +69,7 @@ class ReferenceDataLoader():
 
         _logger.info('ReferenceDataLoader - %s' % ('failed to populate cache' if errors else 'cache populated'))
         cache.delete('reference_data_load_executing')
+        ic(cache.get("ref_data_up_to_date"))
 
     @classmethod
     def _fetch_reference_data(cls, settings):

@@ -17,5 +17,5 @@ RUN pip install -r requirements.txt
 EXPOSE 8008
 EXPOSE 8006
 
-# CMD ["python", "/code/manage.py", "runserver", "0.0.0.0:8008"]
-CMD ["python", "manage.py", "runsslserver", "--certificate", ".certs/cert.pem","--key", ".certs/key.pem", "0.0.0.0:8008"]
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8008"]
+# CMD ["python", "manage.py", "runsslserver", "--certificate", ".certs/cert.pem","--key", ".certs/key.pem", "0.0.0.0:8008"]

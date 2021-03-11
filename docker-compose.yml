@@ -17,9 +17,7 @@ services:
       RABBIT_MQ_HOSTS: rabbitmq
       ELASTIC_SEARCH_HOSTS: elasticsearch
       METAX_DATABASE_HOST: db
-    configs:
-      - source: metax-web-config
-        target: '/code/metax_api/settings/.env'
+
   redis:
     image: redis
     volumes:
@@ -42,47 +40,6 @@ services:
     image: rabbitmq:3-management
     volumes:
       - metax-rabbitmq:/var/lib/rabbitmq
-  nginx:
-    image: nginx:latest
-    configs:
-      - source: metax-nginx-config
-        target: '/etc/nginx/nginx.conf'
-      - source: fairdata-ssl-certificate
-        target: '/etc/nginx/ssl_certs/fd-test.csc.fi.crt.pem'
-      - source: fairdata-ssl-certificate-key
-        target: '/etc/nginx/ssl_certs/fd-test.csc.fi.key.pem'
-      - source: metax-nginx-elastic-headers-config
-        target: '/etc/nginx/elastic_headers.conf'
-      - source: metax-nginx-shared-headers-config
-        target: '/etc/nginx/shared_headers.conf'
-      - source: metax-nginx-api-response-headers-config
-        target: '/etc/nginx/api_response_headers.conf'
-      - source: metax-nginx-static-file-headers-config
-        target: '/etc/nginx/static_file_headers.conf'
-      - source: metax-nginx-dh-param-config
-        target: '/etc/nginx/ssl_certs/nginx_dhparam.pem'
-    ports:
-      - 4433:443
-
-configs:
-  metax-web-config:
-    external: True
-  fairdata-ssl-certificate:
-    external: True
-  fairdata-ssl-certificate-key:
-    external: True
-  metax-nginx-config:
-    external: True
-  metax-nginx-elastic-headers-config:
-    external: True
-  metax-nginx-shared-headers-config:
-    external: True
-  metax-nginx-api-response-headers-config:
-    external: True
-  metax-nginx-static-file-headers-config:
-    external: True
-  metax-nginx-dh-param-config:
-    external: True
 
 volumes:
   metax-rabbitmq:

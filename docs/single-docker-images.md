@@ -1,4 +1,4 @@
-#Docker setup without swarm
+# Docker setup without swarm
 
 __NOTICE If you want to start the services everytime your computer boots, replace `--restart=unless-stopped` with `--restart=always`__
 
@@ -30,10 +30,7 @@ Build new docker image from repository root with this command
 `docker build -t fairdata-metax-web:latest .`
 
 Run the built container with command:
-REDIS_HOST: redis
-      RABBIT_MQ_HOSTS: rabbitmq
-      ELASTIC_SEARCH_HOSTS: elasticsearch
-      METAX_DATABASE_HOST: db
+
 `docker run -it --name fairdata-metax-web --mount type=bind,source="$(pwd)"/src,target=/code -p 8008:8008 --rm -e METAX_DATABASE_USER=<value> -e METAX_DATABASE_PASSWORD=<value> -e METAX_DATABASE=<value> -e REDIS_HOST=<value> -e RABBIT_MQ_HOSTS=<value> -e ELASTIC_SEARCH_HOSTS=<value> -e METAX_DATABASE_HOST=<value> fairdata-metax-web:latest`
 
 ## Metax management commands

@@ -3,3 +3,5 @@ version: "3.8"
 services:
   apache2:
     image: fairdata-docker.artifactory.ci.csc.fi/fairdata-metax-httpd:latest
+    ports:
+      - 8080:8080

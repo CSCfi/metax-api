@@ -21,7 +21,7 @@ services:
       - source: metax-nginx-dh-param-config
         target: '/etc/nginx/ssl_certs/nginx_dhparam.pem'
     ports:
-      - 4433:443
+      - 443:443
 
 configs:
   fairdata-ssl-certificate:

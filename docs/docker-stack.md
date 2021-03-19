@@ -6,19 +6,29 @@ After installing [Docker prerequisites](docker-prerequisites.md), build the meta
 
 `docker build -t fairdata-docker.artifactory.ci.csc.fi/fairdata-metax-web .`
 
+## Building httpd-image (optional)
+`docker build -t fairdata-docker.artifactory.ci.csc.fi/fairdata-metax-httpd -f containers/apache-image.Dockerfile .`
+
+## Pushing metax-image to Artifactory (optional)
+ `docker push fairdata-docker.artifactory.ci.csc.fi/fairdata-metax-web`
+
+## Pushing httpd-image to Artifactory
+`docker push fairdata-docker.artifactory.ci.csc.fi/fairdata-metax-httpd`
+
+
 ## Running the stack locally
 
 In the repository root, run
 
-`docker stack deploy -c docker-compose.yml metax-dev`
+`docker stack deploy -c docker-compose.yml --resolve-image=always --with-registry-auth metax-dev`
 
 ## Running the stack without predefined docker-configs
 
-`docker stack deploy -c config-swap-stack.yml metax-dev`
+`docker stack deploy -c config-swap-stack.yml --resolve-image=always --with-registry-auth metax-dev`
 
 ## Adding nginx to the stack
 
-`docker stack deploy -c docker-compose.yml -c containers/nginx-docker.yml metax-dev`
+`docker stack deploy -c docker-compose.yml -c containers/nginx-docker.yml --resolve-image=always --with-registry-auth metax-dev`
 
 ## Running Metax management commands
 

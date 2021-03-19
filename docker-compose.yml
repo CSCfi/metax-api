@@ -50,6 +50,7 @@ volumes:
     external: true
   metax-redis:
     external: true
-
-
+configs:
+  metax-web-dev-config:
+    external: True
 

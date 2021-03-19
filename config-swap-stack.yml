@@ -43,9 +43,13 @@ services:
 
 volumes:
   metax-rabbitmq:
+    external: true
   metax-es:
+    external: true
   metax-postgres:
+    external: true
   metax-redis:
+    external: true
 
 
 

@@ -1,18 +1,21 @@
 # Local development with Docker-swarm
 
-## Building metax-image (optional)
+## Building metax-image
 
 After installing [Docker prerequisites](docker-prerequisites.md), build the metax-web docker image with the following command:
 
 `docker build -t fairdata-docker.artifactory.ci.csc.fi/fairdata-metax-web .`
 
-## Building httpd-image (optional)
+## Building httpd-image 
+
 `docker build -t fairdata-docker.artifactory.ci.csc.fi/fairdata-metax-httpd -f containers/apache-image.Dockerfile .`
 
-## Pushing metax-image to Artifactory (optional)
+## Pushing metax-image to Artifactory
+
  `docker push fairdata-docker.artifactory.ci.csc.fi/fairdata-metax-web`
 
 ## Pushing httpd-image to Artifactory
+
 `docker push fairdata-docker.artifactory.ci.csc.fi/fairdata-metax-httpd`
 
 

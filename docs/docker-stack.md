@@ -35,7 +35,7 @@ In the repository root, run
 
 ## Running all services 
 
-`docker stack deploy --resolve-image=always --with-registry-auth -c config-swap-stack.yml -c containers/nginx-docker.yml -c containers/apache-docker.yml metax-dev`
+`docker stack deploy --resolve-image=always --with-registry-auth -c docker-compose.yml -c containers/nginx-docker.yml -c containers/apache-docker.yml metax-dev`
 
 ## Running Metax management commands
 

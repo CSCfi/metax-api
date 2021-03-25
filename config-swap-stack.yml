@@ -29,7 +29,7 @@ services:
       POSTGRES_PASSWORD: 'YMDLekQMqrVKcs3'
       POSTGRES_DB: 'metax_db_test'
     volumes:
-      - metax-postgres:/var/lib/postgresql96/data
+      - metax-postgres:/var/lib/postgresql/data
   elasticsearch:
     image: elasticsearch:7.9.2
     environment:

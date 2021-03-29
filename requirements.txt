@@ -169,6 +169,8 @@ sqlparse==0.4.1
     #   django-debug-toolbar
 structlog==20.1.0
     # via -r requirements.in
+tblib==1.7.0
+    # via -r requirements.in
 traitlets==4.3.3
     # via
     #   -r requirements.in

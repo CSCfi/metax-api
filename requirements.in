@@ -35,6 +35,7 @@ django-split-settings
 icecream
 rdflib
 django-sslserver
+tblib
 django-watchman
 django-debug-toolbar
 

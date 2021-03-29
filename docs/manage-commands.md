@@ -31,7 +31,3 @@
 ## Execute management commands against docker swarm metax-api container
 
 `docker exec $(docker ps -q -f name=metax-dev_metax) python manage.py check`
-
- docker service update --config-add source=metax-httpd-test-extra-ssl-config,target=/usr/local/apache2/conf/extra/httpd-ssl.conf --config-add source=metax-httpd-test-extra-userdir-config,target=/usr/local/apache2/conf/extra/httpd-userdir.conf --config-add source=metax-httpd-test-extra-vhosts-config,target=/usr/local/apache2/conf/extra/httpd-vhosts.conf --config-add source=metax-httpd-test-config,target=/usr/local/apache2/conf/httpd.conf --config-add source=metax-httpd-test-extra-autoindex-config,target=/usr/local/apache2/conf/extra/httpd-autoindex.conf metax-dev_apache2
- 
-docker service update --config-add source=fairdata-ssl-certificate,target=/usr/local/apache2/conf/server.crt --config-add source=fairdata-ssl-certificate-key,target=/usr/local/apache2/conf/server.key metax-dev_apache2

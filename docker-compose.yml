@@ -17,6 +17,9 @@ services:
       RABBIT_MQ_HOSTS: rabbitmq
       ELASTIC_SEARCH_HOSTS: elasticsearch
       METAX_DATABASE_HOST: db
+    configs:
+      - source: metax-web-dev-config
+        target: '/code/metax_api/settings/.env'
 
   redis:
     image: redis

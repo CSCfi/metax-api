@@ -36,5 +36,5 @@ icecream
 rdflib
 django-sslserver
 django-watchman
-
+django-debug-toolbar
 

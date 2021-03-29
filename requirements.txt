@@ -97,13 +97,15 @@ mccabe==0.6.1
     # via flake8
 parso==0.7.1
     # via jedi
+pep517==0.10.0
+    # via pip-tools
 pexpect==4.8.0
     # via ipython
 pickleshare==0.7.5
     # via ipython
 pika==1.1.0
     # via -r requirements.in
-pip-tools==5.3.1
+pip-tools==6.0.1
     # via -r requirements.in
 prompt-toolkit==3.0.8
     # via ipython
@@ -156,7 +158,6 @@ six==1.15.0
     #   asttokens
     #   isodate
     #   jsonschema
-    #   pip-tools
     #   pyoai
     #   python-dateutil
     #   rdflib
@@ -171,6 +172,8 @@ structlog==20.1.0
     # via -r requirements.in
 tblib==1.7.0
     # via -r requirements.in
+toml==0.10.2
+    # via pep517
 traitlets==4.3.3
     # via
     #   -r requirements.in

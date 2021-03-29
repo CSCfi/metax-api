@@ -38,4 +38,5 @@ django-sslserver
 tblib
 django-watchman
 django-debug-toolbar
+pip-tools>6
 

@@ -1,6 +1,6 @@
 from watchman import constants as watchman_constants
 
-from metax_api.settings.components.common import INSTALLED_APPS, ALLOWED_HOSTS, MIDDLEWARE
+from metax_api.settings.components.common import INSTALLED_APPS, ALLOWED_HOSTS, MIDDLEWARE, DEBUG
 
 INSTALLED_APPS += ["watchman"]
 
@@ -56,7 +56,10 @@ INTERNAL_IPS = [
     '0.0.0.0'
 ]
 def show_toolbar(request):
-    return True
+    if DEBUG:
+        return True
+    else:
+        return False
 DEBUG_TOOLBAR_CONFIG = {
     "SHOW_TOOLBAR_CALLBACK" : show_toolbar,
 }

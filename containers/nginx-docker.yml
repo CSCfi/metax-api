@@ -7,9 +7,9 @@ services:
       - source: metax-nginx-config
         target: '/etc/nginx/nginx.conf'
       - source: fairdata-ssl-certificate
-        target: '/etc/nginx/ssl_certs/fd-test.csc.fi.crt.pem'
+        target: '/etc/nginx/ssl_certs/fd-dev.csc.fi.crt.pem'
       - source: fairdata-ssl-certificate-key
-        target: '/etc/nginx/ssl_certs/fd-test.csc.fi.key.pem'
+        target: '/etc/nginx/ssl_certs/fd-dev.csc.fi.key.pem'
       - source: metax-nginx-elastic-headers-config
         target: '/etc/nginx/elastic_headers.conf'
       - source: metax-nginx-shared-headers-config

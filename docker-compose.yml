@@ -13,10 +13,10 @@ services:
       METAX_DATABASE: 'metax_db_test'
       METAX_DATABASE_PASSWORD: 'YMDLekQMqrVKcs3'
       METAX_DATABASE_USER: 'metax_test'
-      REDIS_HOST: redis
-      RABBIT_MQ_HOSTS: rabbitmq
-      ELASTIC_SEARCH_HOSTS: elasticsearch
-      METAX_DATABASE_HOST: db
+      REDIS_HOST: metax-redis
+      RABBIT_MQ_HOSTS: metax-rabbitmq
+      ELASTIC_SEARCH_HOSTS: metax-elasticsearch
+      METAX_DATABASE_HOST: metax-db
     configs:
       - source: metax-web-dev-config
         target: '/code/metax_api/settings/.env'

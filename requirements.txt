@@ -88,7 +88,7 @@ jsonschema==3.2.0
     # via
     #   -r requirements.in
     #   datacite
-lxml==4.6.2
+lxml==4.6.3
     # via
     #   -r requirements.in
     #   datacite

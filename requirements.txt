@@ -62,7 +62,7 @@ executing==0.5.3
     # via icecream
 flake8==3.8.4
     # via -r requirements.in
-gevent==20.9.0
+gevent==21.1.2
     # via -r requirements.in
 greenlet==0.4.17
     # via gevent

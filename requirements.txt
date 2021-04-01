@@ -137,7 +137,7 @@ pytz==2020.5
     # via
     #   -r requirements.in
     #   django
-pyyaml==5.3.1
+pyyaml==5.4
     # via -r requirements.in
 rdflib==5.0.0
     # via -r requirements.in

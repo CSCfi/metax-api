@@ -82,7 +82,7 @@ ipython==7.16.1
     # via ipdb
 isodate==0.6.0
     # via rdflib
-jedi==0.17.2
+jedi==0.18.0
     # via ipython
 jsonschema==3.2.0
     # via
@@ -95,7 +95,7 @@ lxml==4.6.2
     #   pyoai
 mccabe==0.6.1
     # via flake8
-parso==0.7.1
+parso==0.8.2
     # via jedi
 pep517==0.10.0
     # via pip-tools

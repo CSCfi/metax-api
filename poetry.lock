@@ -66,14 +66,14 @@ tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>
 
 [[package]]
 name = "autosemver"
-version = "0.5.5"
+version = "1.0.0"
 description = "Tools to handle automatic semantic versioning in python"
 category = "main"
 optional = false
 python-versions = "*"
 
 [package.dependencies]
-dulwich = ">=0.19.6,<0.20"
+dulwich = ">=0.19.6"
 
 [[package]]
 name = "babel"
@@ -440,17 +440,11 @@ test = ["nose (>=0.10.1)", "requests", "testpath", "pygments", "nbformat", "ipyk
 
 [[package]]
 name = "isbnid-fork"
-version = "0.5.2"
+version = "0.4.4"
 description = "Python ISBN ids"
 category = "main"
 optional = false
 python-versions = "*"
-
-[package.dependencies]
-autosemver = ">=0.2,<1.0"
-
-[package.extras]
-tests = ["pytest-pep8 (>=1.0.6)", "pytest (>=3.0.4)"]
 
 [[package]]
 name = "isodate"
@@ -1151,7 +1145,7 @@ attrs = [
     {file = "attrs-21.2.0.tar.gz", hash = "sha256:ef6aaac3ca6cd92904cdd0d83f629a15f18053ec84e6432106f7a4d04ae4f5fb"},
 ]
 autosemver = [
-    {file = "autosemver-0.5.5.tar.gz", hash = "sha256:0af1e8a9c3604545c067311f1c26403e8f0d60b5d9561c0217e14eee21c98b02"},
+    {file = "autosemver-1.0.0.tar.gz", hash = "sha256:6dec39e5099382998b8c6864961f8314374368535e799bdd311d93721cde0810"},
 ]
 babel = [
     {file = "Babel-2.9.1-py2.py3-none-any.whl", hash = "sha256:ab49e12b91d937cd11f0b67cb259a57ab4ad2b59ac7a3b41d6c06c0ac5b0def9"},
@@ -1319,7 +1313,7 @@ ipython = [
     {file = "ipython-7.30.1.tar.gz", hash = "sha256:cb6aef731bf708a7727ab6cde8df87f0281b1427d41e65d62d4b68934fa54e97"},
 ]
 isbnid-fork = [
-    {file = "isbnid_fork-0.5.2.tar.gz", hash = "sha256:8d878866aa0e7f06e700a37fce586c7398ce4837da8bca39683db7028a9c3837"},
+    {file = "isbnid_fork-0.4.4.tar.gz", hash = "sha256:422a435719ad7aa06f232c9a79cceee9f8751253bd2f6629c0c82ab5e58bc63e"},
 ]
 isodate = [
     {file = "isodate-0.6.1-py2.py3-none-any.whl", hash = "sha256:0751eece944162659049d35f4f549ed815792b38793f07cf73381c1c87cbed96"},

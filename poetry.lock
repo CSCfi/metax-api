@@ -66,14 +66,14 @@ tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>
 
 [[package]]
 name = "autosemver"
-version = "0.5.5"
+version = "0.5.3"
 description = "Tools to handle automatic semantic versioning in python"
 category = "main"
 optional = false
 python-versions = "*"
 
 [package.dependencies]
-dulwich = ">=0.19.6,<0.20"
+dulwich = "*"
 
 [[package]]
 name = "babel"
@@ -274,11 +274,11 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
 name = "dulwich"
-version = "0.19.16"
+version = "0.20.35"
 description = "Python Git Library"
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.6"
 
 [package.dependencies]
 certifi = "*"
@@ -286,8 +286,9 @@ urllib3 = ">=1.24.1"
 
 [package.extras]
 fastimport = ["fastimport"]
-pgp = ["gpg"]
 https = ["urllib3[secure] (>=1.24.1)"]
+pgp = ["gpg"]
+watch = ["pyinotify"]
 
 [[package]]
 name = "elasticsearch"
@@ -1151,7 +1152,7 @@ attrs = [
     {file = "attrs-21.2.0.tar.gz", hash = "sha256:ef6aaac3ca6cd92904cdd0d83f629a15f18053ec84e6432106f7a4d04ae4f5fb"},
 ]
 autosemver = [
-    {file = "autosemver-0.5.5.tar.gz", hash = "sha256:0af1e8a9c3604545c067311f1c26403e8f0d60b5d9561c0217e14eee21c98b02"},
+    {file = "autosemver-0.5.3.tar.gz", hash = "sha256:4f4e5c30a51acabd454eddb28fb958a6cd8ba93ce18ab9484bdcb8009e5163a0"},
 ]
 babel = [
     {file = "Babel-2.9.1-py2.py3-none-any.whl", hash = "sha256:ab49e12b91d937cd11f0b67cb259a57ab4ad2b59ac7a3b41d6c06c0ac5b0def9"},
@@ -1271,13 +1272,27 @@ docutils = [
     {file = "docutils-0.16.tar.gz", hash = "sha256:c2de3a60e9e7d07be26b7f2b00ca0309c207e06c100f9cc2a94931fc75a478fc"},
 ]
 dulwich = [
-    {file = "dulwich-0.19.16-cp27-cp27m-win32.whl", hash = "sha256:267160904e9a1cb6c248c5efc53597a35d038ecc6f60bdc4546b3053bed11982"},
-    {file = "dulwich-0.19.16-cp27-cp27m-win_amd64.whl", hash = "sha256:4e3aba5e4844e7c700721c1fc696987ea820ee3528a03604dc4e74eff4196826"},
-    {file = "dulwich-0.19.16-cp35-cp35m-win_amd64.whl", hash = "sha256:60bb2c2c92f5025c1b53a556304008f0f624c98ae36f22d870e056b2d4236c11"},
-    {file = "dulwich-0.19.16-cp36-cp36m-win_amd64.whl", hash = "sha256:f00d132082b8fcc2eb0d722abc773d4aeb5558c1475d7edd1f0f571146c29db9"},
-    {file = "dulwich-0.19.16-py2-none-any.whl", hash = "sha256:10699277c6268d0c16febe141a5b1c1a6e9744f3144c2d2de1706f4b1adafe63"},
-    {file = "dulwich-0.19.16-py3-none-any.whl", hash = "sha256:dddae02d372fc3b5cfb0046d0f62246ef281fa0c088df7601ab5916607add94b"},
-    {file = "dulwich-0.19.16.tar.gz", hash = "sha256:f74561c448bfb6f04c07de731c1181ae4280017f759b0bb04fa5770aa84ca850"},
+    {file = "dulwich-0.20.35-cp310-cp310-macosx_10_15_x86_64.whl", hash = "sha256:428b5fbb79f8cfba2f5ac6826cc813d1903b44b0780e9ec57e54cbd0f44feb61"},
+    {file = "dulwich-0.20.35-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:581c6aa825c9267794747c5cc5ec3831960d96ca7fd9eb0158989e9a4099cbb1"},
+    {file = "dulwich-0.20.35-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:e11cc7a30b42dbbe5a0b6ebbfbfbb07138a5ffd6175bab2ddbabc9882a1c0438"},
+    {file = "dulwich-0.20.35-cp310-cp310-win_amd64.whl", hash = "sha256:22c61a24edb699564b49a9701b723a08fa773f5d3322e8a0cabda897ae86816e"},
+    {file = "dulwich-0.20.35-cp36-cp36m-macosx_10_14_x86_64.whl", hash = "sha256:9759cf611503681bcdd2950c9d2db04d1c057ecbb62d6fccd095b13771864f1c"},
+    {file = "dulwich-0.20.35-cp36-cp36m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:8d683b4f30b1dae6b1668336f62f10ff57ebf2a1252c7cc76ad3eeff973879eb"},
+    {file = "dulwich-0.20.35-cp36-cp36m-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:9d85b6b41c4be6df9ecdc4014d3cbe78a5a44a73c97bccbefac3e5de83bb74be"},
+    {file = "dulwich-0.20.35-cp36-cp36m-win_amd64.whl", hash = "sha256:6dc9b082f6ace9890de572260a575a09a996d617f5930edd2858c6f8fedfd7fb"},
+    {file = "dulwich-0.20.35-cp37-cp37m-macosx_10_14_x86_64.whl", hash = "sha256:28ac2374f09487b02a8cb9b2fad083c358fc927bcfe9803d971614bc00e25076"},
+    {file = "dulwich-0.20.35-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:195b21c7a8f85cb2de8938d54fcc6d589d1ccbceaa63bb117796b531065bb68b"},
+    {file = "dulwich-0.20.35-cp37-cp37m-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:9bdea3a4e8e5e3b1dbd513d9ab8a692f8a9a6f4760633e25c006446bce56fc5e"},
+    {file = "dulwich-0.20.35-cp37-cp37m-win_amd64.whl", hash = "sha256:3d3d07b5aa51e6b7d08707c62932da86adbbaaa62552a0129b37d413735c7786"},
+    {file = "dulwich-0.20.35-cp38-cp38-macosx_10_14_x86_64.whl", hash = "sha256:5d94cd182fb0da4ec2f182be977b27b9cc1d7dbd0ee9bbf991e101a95fdcd3d8"},
+    {file = "dulwich-0.20.35-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:f563e9f51e83c47a7df2f3cea79919f700e50d1e5556b6b753730b9cd2be1f47"},
+    {file = "dulwich-0.20.35-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:f221c3c2fd10260419905bb673cd00129d491e3ed38c7a8d3ac2c7662682dd9b"},
+    {file = "dulwich-0.20.35-cp38-cp38-win_amd64.whl", hash = "sha256:c4f4c59445dc5c2341e9cb2fe35e51a890e8a5f42178abec0a96044811c558a9"},
+    {file = "dulwich-0.20.35-cp39-cp39-macosx_10_15_x86_64.whl", hash = "sha256:3616a949053eb6bdf34581f57d1f6cb7192a4bb635be1a02c37f6f6dda032277"},
+    {file = "dulwich-0.20.35-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:134a2f586847c2c58569959a784d7a875b551df4226b639267302217799e4234"},
+    {file = "dulwich-0.20.35-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:c008b6b562af76cf011d3b5450a0d30edc96feeee7856b081d7400bc7cf42653"},
+    {file = "dulwich-0.20.35-cp39-cp39-win_amd64.whl", hash = "sha256:bf228800785754d7a55d52c5f122c26c3ced51f0f3df727fde2c9fefb71d5d76"},
+    {file = "dulwich-0.20.35.tar.gz", hash = "sha256:953f6301a9df8a091fa88d55eed394a88bf9988cde8be341775354910918c196"},
 ]
 elasticsearch = [
     {file = "elasticsearch-7.16.1-py2.py3-none-any.whl", hash = "sha256:97e9d62db71a571c540d6dfa2a51bc2263b5c0d7b9f9896eb7116ba02373c69b"},

@@ -1,3 +1,8 @@
+# Note: Repository renamed
+
+- This repository has been renamed https://github.com/CSCfi/fairdata-metax/
+- This version of the repository `metax-api` has been archived
+
 # Metax API
 
 This repository contains the code for Metax API service.
